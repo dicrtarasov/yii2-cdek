@@ -167,7 +167,11 @@ class CalcRequest extends AbstractRequest
 	    }
 
 	    foreach ($val as $i => $tarif) {
-            if (!is_array($tarif)) {
+	        if (is_numeric($tarif)) {
+	            $tarif = [
+	                'id' => (int)$tarif
+	            ];
+	        } elseif (!is_array($tarif)) {
                 return $this->addError($attribute, 'Некорректный тип данных тарифа');
             }
 
@@ -256,20 +260,37 @@ class CalcRequest extends AbstractRequest
 	public function validateServices()
 	{
 	    $attribute = 'services';
+
 	    $val = $this->{$attribute};
 	    if (empty($val)) {
-	        return;
+	        $this->{$attribute} = null;
+	        return true;
 	    }
 
 	    if (!is_array($val)) {
-	        return $this->addError($attribute, 'Некорректный тип значения сервисов');
+	        $this->addError($attribute, 'Некорректный тип значения сервисов');
+	        return false;
 	    }
 
-	    foreach ($val as $service) {
-	        if (!in_array($service['id'] ?? '', array_keys(CdekApi::SERVICE_TYPES))) {
-	            return $this->addError($attribute, 'некорректный тип севиса');
+	    foreach ($val as $i => $service) {
+	        if (is_numeric($service)) {
+	            $service = ['id' => $service];
+	        } elseif (!is_array($service)) {
+	            $this->addError($attribute, 'некорректный тип значения');
+	            return false;
 	        }
+
+	        $service['id'] = (int)($service['id'] ?? 0);
+	        if (!in_array($service['id'], array_keys(CdekApi::SERVICE_TYPES))) {
+	            $this->addError($attribute, 'некорректный код сервиса');
+	            return false;
+	        }
+
+	        $val[$i] = $service;
 	    }
+
+	    $this->{$attribute} = $val;
+	    return true;
 	}
 
 	/**

@@ -11,9 +11,6 @@ use yii\base\BaseObject;
  */
 class CalcResult extends BaseObject
 {
-    /** @var array[] [code => Код ошибки, text => Текст ошибки] Массив ошибок при их возникновении */
-    public $error;
-
     /** @var float Сумма за доставку в рублях */
     public $price;
 

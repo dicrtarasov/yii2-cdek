@@ -48,33 +48,33 @@ class CalcRequest extends AbstractRequest
     /** @var int Код города отправителя из базы СДЭК */
     public $senderCityId;
 
-    /** @var int Индекс города отправителя из базы СДЭК */
+    /** @var int Индекс города отправителя из базы СДЭК (если не задан senderCityId) */
     public $senderCityPostCode;
 
     /** @var int Код города получателя из базы СДЭК */
     public $receiverCityId;
 
-    /** @var int Индекс города получателя из базы СДЭК */
+    /** @var int Индекс города получателя из базы СДЭК (если не задан receiverCityId) */
     public $receiverCityPostCode;
 
     /** @var int Код выбранного тарифа (CdekApi::TARIF_TYPES) */
     public $tariffId;
 
     /**
-     * @var array Список тарифов
+     * @var array Список тарифов (если не задан tariffId)
      * - int $id код тарифа (CdekApi::TARIF_TYPES)
      * - int $priority Заданный приоритет
-     * - int $modeId режим доставки (CdekApi::DELIVERY_TYPES)
+     * - int $modeId режим доставки (CdekApi::DELIVERY_TYPES) (при рассчете отфильтровываются тарифы с неподходящим mode)
      */
     public $tariffList;
 
     /**
      * @var array Габаритные характеристики места
      * - float $weight - Вес места (в килограммах)
-     * - int $length - Длина места (в сантиметрах)
-     * - int $width - Ширина места (в сантиметрах)
-     * - int $height - Высота места (в сантиметрах)
      * - float $volume - Объём места (в м³)
+     * - int $length - Длина места (в сантиметрах, если не задан volume)
+     * - int $width - Ширина места (в сантиметрах, если не задан volume)
+     * - int $height - Высота места (в сантиметрах, если не задан volume)
      */
     public $goods;
 
@@ -229,7 +229,7 @@ class CalcRequest extends AbstractRequest
 
 	        // если не заданы никакие размеры, то берем объем послыки по-умолчанию
 	        if (empty($good['volume']) && empty($good['width']) && empty($good['height']) && empty($good['length'])) {
-	            $good['colume'] = $this->api->defaultVolume;
+	            $good['volume'] = $this->api->defaultVolume;
 	        }
 
             // проверяем вариант указания объема
@@ -323,15 +323,18 @@ class CalcRequest extends AbstractRequest
 	        throw new Exception('Ошибка валидации: ' . array_values($this->firstErrors)[0]);
 	    }
 
+	    // готовим данные для отправки
 	    $data = array_merge($this->toArray(), [
             'version' => self::API_VERSION
         ]);
 
+	    // авторизация
 	    if (isset($this->api->login)) {
 	        $data['authLogin'] = $this->api->login;
 	        $data['secure'] = $this->getSecure();
 	    }
 
+	    // готовим POST-запрос
 	    $request = $this->api->post(self::REQUEST_URL);
 	    $request->format = Client::FORMAT_JSON;
 	    $request->data = array_filter($data, function($val) {
@@ -361,7 +364,7 @@ class CalcRequest extends AbstractRequest
 
 	    // декодируем Json
 	    $json = Json::decode($content, true);
-	    if ($json === null || empty($json['result'])) {
+	    if ($json === null || empty($json['result']) || !empty($json['error'])) {
 	        if (!empty($json['error'][0]['text'])) {
 	            throw new Exception('Ошибка СДЭК: ' . $json['error'][0]['text']);
 	        }
@@ -375,8 +378,6 @@ class CalcRequest extends AbstractRequest
 	            'tags' => [__CLASS__, __NAMESPACE__]
 	        ]));
 	    }
-
-	    $content = null;
 
 	    return new CalcResult($json['result']);
 	}

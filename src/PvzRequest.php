@@ -19,13 +19,13 @@ class PvzRequest extends AbstractRequest
     /** @var string URL запроса */
     const REQUEST_XML = '/pvzlist/v1/xml';
 
-    /** @var string почтовый индекс города */
-    public $citypostcode;
-
     /** @var int код города по базе СДЭК */
     public $cityid;
 
-    /** @var string Тип пункта выдачи */
+    /** @var string почтовый индекс города (если не задан id) */
+    public $citypostcode;
+
+    /** @var string Тип пункта выдачи (Pvz::TYPES) */
     public $type;
 
     /** @var int Код страны по базе СДЭК */

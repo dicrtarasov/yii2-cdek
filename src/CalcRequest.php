@@ -64,9 +64,14 @@ class CalcRequest extends AbstractRequest
      * @var array Список тарифов (если не задан tariffId)
      * - int $id код тарифа (CdekApi::TARIF_TYPES)
      * - int $priority Заданный приоритет
-     * - int $modeId режим доставки (CdekApi::DELIVERY_TYPES) (при рассчете отфильтровываются тарифы с неподходящим mode)
      */
     public $tariffList;
+
+    /**
+     * @var int режим доставки (CdekApi::DELIVERY_TYPES) если указан tariffList
+     * (ошибка в документации, modeId не в списке тарифов)
+     */
+    public $modeId;
 
     /**
      * @var array Габаритные характеристики места
@@ -127,6 +132,10 @@ class CalcRequest extends AbstractRequest
 			['tariffList', 'default'],
 			['tariffList', 'validateTariffList', 'skipOnEmpty' => true],
 
+			['modeId', 'default'],
+			['modeId', 'in', 'range' => CdekApi::DELIVERY_TYPES],
+			['modeId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+
 			[['tariffId', 'tariffList'], function($attribute, $params, $validator) {
 			    // если не установлен ни код тарифа, ни список тарифов
 			    if (empty($this->tariffId) && empty($this->tariffList)) {
@@ -183,10 +192,6 @@ class CalcRequest extends AbstractRequest
                 $tarif['priority'] = (int)$i;
             } else {
                 $tarif['priority'] = (int)($tarif['priority'] ?? 0);
-            }
-
-            if (isset($tarif['modeId']) && !in_array($tarif['modeId'], array_keys(CdekApi::DELIVERY_TYPES))) {
-                return $this->addError($attribute, 'Некорректный тип доставки');
             }
 
             $val[$i] = $tarif;

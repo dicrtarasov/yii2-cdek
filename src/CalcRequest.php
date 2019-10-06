@@ -133,7 +133,7 @@ class CalcRequest extends AbstractRequest
 			['tariffList', 'validateTariffList', 'skipOnEmpty' => true],
 
 			['modeId', 'default'],
-			['modeId', 'in', 'range' => CdekApi::DELIVERY_TYPES],
+			['modeId', 'in', 'range' => array_keys(CdekApi::DELIVERY_TYPES)],
 			['modeId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
 			[['tariffId', 'tariffList'], function($attribute, $params, $validator) {

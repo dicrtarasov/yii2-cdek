@@ -75,8 +75,8 @@ class CalcRequest extends AbstractRequest
 
     /**
      * @var array Габаритные характеристики места
-     * - float $weight - Вес места (в килограммах)
-     * - float $volume - Объём места (в м³)
+     * - float $weight - Вес места, кг
+     * - float $volume - Объём места, м³
      * - int $length - Длина места (в сантиметрах, если не задан volume)
      * - int $width - Ширина места (в сантиметрах, если не задан volume)
      * - int $height - Высота места (в сантиметрах, если не задан volume)

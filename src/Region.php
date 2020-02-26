@@ -1,13 +1,18 @@
 <?php
+/**
+ * @copyright 2019-2020 Dicr http://dicr.org
+ * @author Igor A Tarasov <develop@dicr.org>
+ * @license proprietary
+ * @version 26.02.20 19:52:37
+ */
+
+declare(strict_types = 1);
 namespace dicr\cdek;
 
 use yii\base\BaseObject;
 
 /**
  * Регион в базе СДЭК.
- *
- * @author Igor (Dicr) Tarasov <develop@dicr.org>
- * @version 2019
  */
 class Region extends BaseObject
 {

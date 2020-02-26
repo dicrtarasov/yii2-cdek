@@ -1,171 +1,177 @@
 <?php
+/**
+ * @copyright 2019-2020 Dicr http://dicr.org
+ * @author Igor A Tarasov <develop@dicr.org>
+ * @license proprietary
+ * @version 27.02.20 02:18:12
+ */
+
+declare(strict_types = 1);
 namespace dicr\cdek;
 
+use dicr\validate\ValidateException;
 use yii\base\Exception;
-use yii\caching\TagDependency;
-use yii\helpers\Json;
+use yii\httpclient\Client;
+use function array_filter;
+use function array_keys;
 
 /**
  * Запрос списка ПВЗ (пунктов самовывоза).
  *
- * @author Igor (Dicr) Tarasov <develop@dicr.org>
- * @version 2019
+ * @property-read array $params данные для отправки
  */
 class PvzRequest extends AbstractRequest
 {
-    /** @var string URL запроса */
-    const REQUEST_JSON = '/pvzlist/v1/json';
+    /** @var string URL запроса для JSON-ответа */
+    public const REQUEST_JSON = '/pvzlist/v1/json';
 
-    /** @var string URL запроса */
-    const REQUEST_XML = '/pvzlist/v1/xml';
+    /** @var string URL запроса для XML-ответа */
+    public const REQUEST_XML = '/pvzlist/v1/xml';
 
-    /** @var int код города по базе СДЭК */
-    public $cityid;
-
-    /** @var string почтовый индекс города (если не задан id) */
+    /** @var int|null почтовый индекс города (если не задан id) */
     public $citypostcode;
 
-    /** @var string Тип пункта выдачи (Pvz::TYPES) */
+    /** @var int|null код города по базе СДЭК */
+    public $cityid;
+
+    /** @var string|null Тип пункта выдачи (Pvz::TYPES) */
     public $type;
 
-    /** @var int Код страны по базе СДЭК */
+    /** @var int|null Код страны по базе СДЭК */
     public $countryid;
 
-    /** @var string Код страны в формате ISO_3166-1_alpha-2 (см. “Общероссийский классификатор стран мира”) */
+    /** @var string|null [2] Код страны в формате ISO_3166-1_alpha-2 (см. “Общероссийский классификатор стран мира”) */
     public $countryiso;
 
-    /** @var int Код региона по базе СДЭК */
+    /** @var int|null Код региона по базе СДЭК */
     public $regionid;
 
-    /** @var bool Наличие терминала оплаты */
+    /** @var bool|null Наличие терминала оплаты */
     public $havecashless;
 
-    /** @var bool Разрешен наложенный платеж */
+    /** @var bool|null Разрешен наложенный платеж */
     public $allowedcod;
 
-    /** @var bool Наличие примерочной */
+    /** @var bool|null Наличие примерочной */
     public $isdressingroom;
 
-    /** @var int Максимальный вес, который может принять ПВЗ
+    /** @var int|null Максимальный вес, который может принять ПВЗ
      *  - значения больше 0 - передаются ПВЗ, которые принимают этот вес;
      *  - 0 - все ПВЗ;
      *  - значение не указано - ПВЗ с нулевым весом не передаются.
      */
     public $weightmax;
 
-    /** @var string Локализация ПВЗ. По умолчанию "rus" */
-    public $lang;
+    /** @var int|null Минимальный вес в кг, который принимает ПВЗ (при переданном значении будут выводиться ПВЗ с минимальным весом до указанного значения) */
+    public $weightmin;
 
-    /** @var bool Является ли ПВЗ только пунктом выдачи (либо только прием посылок на отправку) */
+    /** @var string|null Локализация ПВЗ. По умолчанию "rus" */
+    public $lang = 'rus';
+
+    /** @var bool|null Является ли ПВЗ только пунктом выдачи (либо только прием посылок на отправку) */
     public $takeonly;
 
     /**
      * {@inheritDoc}
-     * @see \yii\base\Model::rules()
      */
     public function rules()
     {
         return [
             ['citypostcode', 'default'],
+            ['citypostcode', 'integer', 'min' => 1],
 
-            ['cityid', 'default'],
-            ['cityid', 'integer', 'min' => 1],
-            ['cityid', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+            [['cityid', 'countryid', 'regionid'], 'default'],
+            [['cityid', 'countryid', 'regionid'], 'integer', 'min' => 1],
+            [['cityid', 'countryid', 'regionid'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['type', 'default'],
-            ['type', 'in', 'range' => [Pvz::TYPE_PVZ, Pvz::TYPE_POSTOMAT]],
-
-            ['countryid', 'default'],
-            ['countryid', 'integer', 'min' => 1],
+            ['type', 'in', 'range' => array_keys(Pvz::TYPES)],
 
             ['countryiso', 'default'],
             ['countryiso', 'string', 'length' => 2],
 
-            ['regionid', 'default'],
-            ['regionid', 'integer', 'min' => 1],
-
             [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'default'],
             [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'boolean'],
-            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'filter', 'filter' => 'boolval', 'skipOnEmpty' => true],
+            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'filter', 'filter' => 'boolval',
+             'skipOnEmpty' => true],
 
-            ['weightmax', 'default'],
-            ['weightmax', 'integer', 'min' => 0],
+            [['weightmax', 'weightmin'], 'default'],
+            [['weightmax', 'weightmin'], 'integer', 'min' => 0],
+            [['weightmax', 'weightmin'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
-            ['lang', 'default'],
+            ['lang', 'default', 'value' => 'rus'],
             ['lang', 'string', 'length' => 3]
         ];
     }
 
-	/**
-	 * {@inheritDoc}
-	 * @see \yii\base\Model::attributeLabels()
-	 */
-	public function attributeLabels()
-	{
-		return [
-			'cityid' => 'Код города',
-			'citypostcode' => 'Почтовый индекс',
-			'countryid' => 'Код страны',
-			'regionid' => 'Код региона',
-			'havecashless' => 'Есть терминал оплаты',
-			'isdressingroom' => 'Есть примерочная',
-			'weightmax' => 'Максимальный вес',
-			'allowedcod' => 'Разрешен наложенный платеж'
-		];
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'citypostcode' => 'Почтовый индекс',
+            'cityid' => 'Код города',
+            'type' => 'Тип пункта выдачи',
+            'countryid' => 'Код страны',
+            'countryiso' => 'Код страны в формате ISO_3166-1',
+            'regionid' => 'Код региона',
+            'havecashless' => 'Есть терминал оплаты',
+            'allowedcod' => 'Разрешен наложенный платеж',
+            'isdressingroom' => 'Есть примерочная',
+            'weightmax' => 'Максимальный вес',
+            'weightmin' => 'Минимальный вес',
+            'lang' => 'Локализация ПВЗ',
+            'takeonly' => 'Только выдача'
+        ];
+    }
+
+    /**
+     * Даные для запроса.
+     *
+     * @return array
+     */
+    public function getParams()
+    {
+        $params = $this->toArray();
+        if ($params['lang'] === 'rus') {
+            unset($params['lang']);
+        }
+
+        return array_filter($params, static function($val) {
+            return $val !== null;
+        });
+    }
 
     /**
      * Возвращает список ПВЗ.
      *
-     * @throws \yii\base\Exception
      * @return \dicr\cdek\Pvz[] список ПВЗ
+     * @throws \yii\base\Exception
      */
     public function send()
     {
-        if (!$this->validate()) {
-            throw new Exception('Ошибка валиации: ' . rarray_values($this->firstErrors)[0]);
+        if (! $this->validate()) {
+            throw new ValidateException($this);
         }
 
-        /** @var \yii\httpclient\Request */
-        $request = $this->api->get(self::REQUEST_JSON, $this->toArray());
-        $key = $request->toString();
-        $content = null;
-
-        /** @var string ответ */
-        if (!empty($this->api->catalogCache)) {
-            $content = $this->api->catalogCache->get($key);
-            if ($content !== false) {
-                $content = @gzuncompress($content);
-            }
-        }
+        $request = $this->api->get(self::REQUEST_JSON, $this->params);
 
         // делаем запрос к API
-        if ($content === null || $content === false) {
-            $response = $request->send();
-			if (!$response->isOk) {
-			    throw new Exception('Ошибка ответа СДЭК: '.$response->statusCode);
-			}
-
-			$content = $response->content;
+        $response = $request->send();
+        if (! $response->isOk) {
+            throw new Exception('Ошибка ответа СДЭК: ' . $response->statusCode);
         }
 
         // декодируем ответ
-        $json = Json::decode($content, true);
-        if ($json === null || !isset($json['pvz'])) {
-            throw new Exception('Ошибка ответа СДЭК: ' . $content);
+        $response->format = Client::FORMAT_JSON;
+        $json = $response->data;
+        if ($json === null || ! isset($json['pvz'])) {
+            throw new Exception('Ошибка ответа СДЭК: ' . $response->toString());
         }
 
-        // сохраняем в кеше
-        if (!empty($this->api->catalogCache)) {
-            $this->api->catalogCache->set($key, gzcompress($content), $this->api->catalogCacheDuration, new TagDependency([
-                'tags' => [__CLASS__, __NAMESPACE__]
-            ]));
-        }
-
-		$content = null;
-
-		return array_map(function($config) {
-		    return new Pvz($config);
-		}, $json['pvz']);
+        return array_map(static function(array $config) {
+            return new Pvz($config);
+        }, $json['pvz']);
     }
 }

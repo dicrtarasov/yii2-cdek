@@ -1,16 +1,23 @@
 <?php
+/**
+ * @copyright 2019-2020 Dicr http://dicr.org
+ * @author Igor A Tarasov <develop@dicr.org>
+ * @license proprietary
+ * @version 26.02.20 19:22:56
+ */
+
 namespace dicr\tests;
 
 /**
  * CalcRequest Test.
- *
- * @author Igor (Dicr) Tarasov <develop@dicr.org>
- * @version 2019
  */
 class CalcRequestTest extends AbstractTest
 {
     /**
      * Тестовый запрос
+     *
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\base\Exception
      */
     public function testCalcRequest()
     {

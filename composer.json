@@ -1,46 +1,59 @@
 {
-	"name" : "dicr/yii2-cdek",
-	"description" : "API службы доставки СДЭК",
-	"type" : "yii2-extension",
-	"homepage" : "https://gitlab.com/dicr/yii2-cdek",
-	"authors" : [{
-			"name" : "Igor Tarasov",
-			"email" : "develop@dicr.org",
-			"homepage" : "http://dicr.org",
-			"role" : "developer"
-		}
-	],
-	"require" : {
-		"php" : ">=7.2",
-		"yiisoft/yii2" : "~2.0",
-		"yiisoft/yii2-httpclient" : "~2.0",
-		"dicr/yii2-settings" : "~3.0",
-		"dicr/yii2-http" : "~1.0"
-	},
-	"repositories" : [{
-			"type" : "composer",
-			"url" : "https://asset-packagist.org"
-		}, {
-			"type" : "git",
-			"url" : "https://gitlab.com/dicr/yii2-http.git"
-		}, {
-			"type" : "git",
-			"url" : "https://gitlab.com/dicr/yii2-settings.git"
-		}
-	],
-	"keywords" : [
-		"dicr yii2 cdek"
-	],
-	"autoload" : {
-		"psr-4" : {
-			"dicr\\cdek\\" : "src/"
-		}
-	},
-	"support" : {
-		"source" : "https://gitlab.com/dicr/yii2-cdek.git"
-	},
-	"require-dev" : {
-		"phpunit/phpunit" : "~8.1"
-	},
-	"license" : "Apache-2.0"
+    "name": "dicr/yii2-cdek",
+    "type": "yii2-extension",
+    "description": "API службы доставки СДЭК",
+    "license": "Apache-2.0",
+    "homepage": "https://gitlab.com/dicr/yii2-cdek",
+    "authors": [
+        {
+            "name": "Igor Tarasov",
+            "email": "develop@dicr.org",
+            "homepage": "http://dicr.org",
+            "role": "developer"
+        }
+    ],
+    "support": {
+        "source": "https://gitlab.com/dicr/yii2-cdek.git"
+    },
+    "keywords": [
+        "dicr", "php", "yii2", "cdek"
+    ],
+    "autoload": {
+        "psr-4": {
+            "dicr\\cdek\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "dicr\\tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "RC",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=7.2",
+        "ext-zlib": "*",
+        "yiisoft/yii2": "~2.0.32",
+        "yiisoft/yii2-httpclient": "~2.0.12",
+        "dicr/yii2-settings": "~3.2.1",
+        "dicr/yii2-http": "~2.0.6",
+        "dicr/yii2-validate": "~1.5.6"
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-master",
+        "phpunit/phpunit": "~8.5.2"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://gitlab.com/dicr/yii2-http.git"
+        }, {
+            "type": "git",
+            "url": "https://gitlab.com/dicr/yii2-settings.git"
+        },
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ]
 }

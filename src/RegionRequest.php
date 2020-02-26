@@ -1,58 +1,67 @@
 <?php
+/**
+ * @copyright 2019-2020 Dicr http://dicr.org
+ * @author Igor A Tarasov <develop@dicr.org>
+ * @license proprietary
+ * @version 27.02.20 02:19:33
+ */
+
+declare(strict_types = 1);
 namespace dicr\cdek;
 
+use dicr\validate\ValidateException;
 use yii\base\Exception;
-use yii\caching\TagDependency;
-use yii\helpers\Json;
+use yii\httpclient\Client;
 
 /**
  * Запрос информации о регионах.
  *
- * @author Igor (Dicr) Tarasov <develop@dicr.org>
- * @version 2019
+ * @property-read array $params данные для запроса
  */
 class RegionRequest extends AbstractRequest
 {
     /** @var string URL для получения ответа в XML */
-    const URL_XML = '/v1/location/regions';
+    public const URL_XML = '/v1/location/regions';
 
     /** @var string url для получения ответа в JSON */
-    const URL_JSON = '/v1/location/regions/json';
+    public const URL_JSON = '/v1/location/regions/json';
 
-    /** @var string [10] Код региона */
+    /** @var string|null [10] Код региона */
     public $regionCodeExt;
 
-    /** @var int Код региона в ИС СДЭК */
+    /** @var int|null Код региона в ИС СДЭК */
     public $regionCode;
 
-    /** @var string UUID Код региона по ФИАС */
+    /** @var string|null UUID Код региона по ФИАС */
     public $regionFiasGuid;
 
-    /** @var string (2) Код страны в формате ISO 3166-1 alpha-2 */
+    /** @var string|null [2] Код страны в формате ISO 3166-1 alpha-2 */
     public $countryCode;
 
-    /** @var int Код ОКСМ */
+    /** @var int|null Код ОКСМ */
     public $countryCodeExt;
 
-    /** @var int Номер страницы выборки результата. По умолчанию 0 */
-    public $page;
+    /** @var int|null Номер страницы выборки результата. По умолчанию 0 */
+    public $page = 0;
 
-    /** @var int Ограничение выборки результата. По умолчанию 1000 */
-    public $size;
+    /** @var int|null Ограничение выборки результата. По умолчанию 1000 */
+    public $size = 1000;
 
-    /** @var string [3] Локализация. По умолчанию "rus". */
-    public $lang;
+    /** @var string|null [3] Локализация. По умолчанию "rus". */
+    public $lang = 'rus';
 
     /**
      * {@inheritDoc}
-     * @see \yii\base\Model::rules()
      */
     public function rules()
     {
         return [
-            [['regionCodeExt', 'regionCode', 'countryCodeExt'], 'default'],
-            [['regionCodeExt', 'regionCode', 'countryCodeExt'], 'integer', 'min' => 1],
-            [['regionCodeExt', 'regionCode', 'countryCodeExt'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+            ['regionCodeExt', 'default'],
+            ['regionCodeExt', 'string', 'max' => 10],
+
+            [['regionCode', 'countryCodeExt'], 'default'],
+            [['regionCode', 'countryCodeExt'], 'integer', 'min' => 1],
+            [['regionCode', 'countryCodeExt'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['regionFiasGuid', 'default'],
             ['regionFiasGuid', 'string', 'max' => 45],
@@ -60,69 +69,89 @@ class RegionRequest extends AbstractRequest
             ['countryCode', 'default'],
             ['countryCode', 'string', 'length' => 2],
 
-            ['page', 'default'],
+            ['page', 'default', 'value' => 0],
             ['page', 'integer', 'min' => 0],
             ['page', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
-            ['size', 'default'],
+            ['size', 'default', 'value' => 1000],
             ['size', 'integer', 'min' => 1],
             ['size', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
-            ['lang', 'default'],
+            ['lang', 'default', 'value' => 'rus'],
             ['lang', 'string', 'max' => 3]
         ];
     }
 
     /**
+     * @inheritDoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'regionCodeExt' => 'Код региона',
+            'regionCode' => 'Код региона в ИС СДЭК',
+            'regionFiasGuid' => 'Код региона по ФИАС',
+            'countryCode' => 'Код страны в формате ISO 3166-1 alpha-2',
+            'countryCodeExt' => 'Код ОКСМ',
+            'page' => 'Номер страницы',
+            'size' => 'Кол-во результатов',
+            'lang' => 'Локализация'
+        ];
+    }
+
+    /**
+     * Даные для запроса.
+     *
+     * @return array
+     */
+    public function getParams()
+    {
+        $params = $this->toArray();
+        if ($params['page'] === 0) {
+            unset($params['page']);
+        }
+
+        if ($params['size'] === 1000) {
+            unset($params['size']);
+        }
+
+        if ($params['lang'] === 'rus') {
+            unset($params['lang']);
+        }
+
+        return array_filter($params, static function($val) {
+            return $val !== null;
+        });
+    }
+
+    /**
      * Отправляет запрос и возвращает список регионов.
      *
-     * @throws Exception
      * @return array|\dicr\cdek\Region
+     * @throws Exception
      */
     public function send()
     {
-        if (!$this->validate()) {
-            throw new Exception('Ошибка валидации: ' . array_values($this->firstErrors)[0]);
+        if (! $this->validate()) {
+            throw new ValidateException($this);
         }
 
-        $request = $this->api->get(self::URL_JSON, $this->toArray());
-        $key = $request->toString();
-        $content = null;
-
-        // пробуем достать из кэша
-        if (!empty($this->api->catalogCache)) {
-            $content = $this->api->catalogCache->get($key);
-            if ($content !== false) {
-                $content = @gzuncompress($content);
-            }
-        }
+        $request = $this->api->get(self::URL_JSON, $this->params);
 
         // отправляем запрос
-        if ($content === null || $content === false) {
-            $response = $request->send();
-            if (!$response->isOk) {
-                throw new Exception('Некорректный ответ от СДЭК: ' . $response->statusCode);
-            }
-
-            $content = $response->content;
+        $response = $request->send();
+        if (! $response->isOk) {
+            throw new Exception('Некорректный ответ от СДЭК: ' . $response->toString());
         }
 
         // декодируем ответ
-        $json = Json::decode($content, true);
+        $response->format = Client::FORMAT_JSON;
+        $json = $response->data;
         if ($json === null) {
-            throw new Exception('Ошибка декодирование ответа СДЭК: ' . $content);
+            throw new Exception('Ошибка декодирование ответа СДЭК: ' . $response->toString());
         }
 
-        // сохраняем в кеш
-        if (!empty($this->api->catalogCache)) {
-            $this->api->catalogCache->set($key, gzcompress($content), $this->api->catalogCacheDuration, new TagDependency([
-                'tags' => [__CLASS__, __NAMESPACE__]
-            ]));
-        }
-
-        $content = null;
-
-        return array_map(function($config) {
+        return array_map(static function($config) {
             return new Region($config);
         }, $json);
     }

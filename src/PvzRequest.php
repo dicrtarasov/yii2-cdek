@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 27.02.20 02:18:12
+ * @version 28.02.20 02:16:41
  */
 
 declare(strict_types = 1);
@@ -66,43 +66,10 @@ class PvzRequest extends AbstractRequest
     public $weightmin;
 
     /** @var string|null Локализация ПВЗ. По умолчанию "rus" */
-    public $lang = 'rus';
+    public $lang;
 
     /** @var bool|null Является ли ПВЗ только пунктом выдачи (либо только прием посылок на отправку) */
     public $takeonly;
-
-    /**
-     * {@inheritDoc}
-     */
-    public function rules()
-    {
-        return [
-            ['citypostcode', 'default'],
-            ['citypostcode', 'integer', 'min' => 1],
-
-            [['cityid', 'countryid', 'regionid'], 'default'],
-            [['cityid', 'countryid', 'regionid'], 'integer', 'min' => 1],
-            [['cityid', 'countryid', 'regionid'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
-
-            ['type', 'default'],
-            ['type', 'in', 'range' => array_keys(Pvz::TYPES)],
-
-            ['countryiso', 'default'],
-            ['countryiso', 'string', 'length' => 2],
-
-            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'default'],
-            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'boolean'],
-            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'filter', 'filter' => 'boolval',
-             'skipOnEmpty' => true],
-
-            [['weightmax', 'weightmin'], 'default'],
-            [['weightmax', 'weightmin'], 'integer', 'min' => 0],
-            [['weightmax', 'weightmin'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
-
-            ['lang', 'default', 'value' => 'rus'],
-            ['lang', 'string', 'length' => 3]
-        ];
-    }
 
     /**
      * {@inheritDoc}
@@ -127,19 +94,50 @@ class PvzRequest extends AbstractRequest
     }
 
     /**
-     * Даные для запроса.
+     * {@inheritDoc}
+     */
+    public function rules()
+    {
+        return [
+            ['citypostcode', 'default'],
+            ['citypostcode', 'integer', 'min' => 1],
+            ['citypostcode', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+
+            [['cityid', 'countryid', 'regionid'], 'default'],
+            [['cityid', 'countryid', 'regionid'], 'integer', 'min' => 1],
+            [['cityid', 'countryid', 'regionid'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+
+            ['type', 'default'],
+            ['type', 'in', 'range' => array_keys(Pvz::TYPES)],
+
+            ['countryiso', 'default'],
+            ['countryiso', 'string', 'length' => 2],
+
+            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'default'],
+            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'boolean'],
+            [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'filter', 'filter' => 'boolval',
+             'skipOnEmpty' => true],
+
+            [['weightmax', 'weightmin'], 'default'],
+            [['weightmax', 'weightmin'], 'integer', 'min' => 0],
+            [['weightmax', 'weightmin'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+
+            ['lang', 'default'],
+            ['lang', 'string', 'length' => 3]
+        ];
+    }
+
+    /**
+     * Параметры запроса.
      *
      * @return array
      */
     public function getParams()
     {
         $params = $this->toArray();
-        if ($params['lang'] === 'rus') {
-            unset($params['lang']);
-        }
 
-        return array_filter($params, static function($val) {
-            return $val !== null;
+        return array_filter($params, static function($param) {
+            return $param !== null && $param !== '';
         });
     }
 
@@ -155,23 +153,29 @@ class PvzRequest extends AbstractRequest
             throw new ValidateException($this);
         }
 
-        $request = $this->api->get(self::REQUEST_JSON, $this->params);
-
         // делаем запрос к API
+        $request = $this->api->get(self::REQUEST_JSON, $this->params);
         $response = $request->send();
         if (! $response->isOk) {
-            throw new Exception('Ошибка ответа СДЭК: ' . $response->statusCode);
+            throw new Exception('Ошибка запроса: ' . $response->toString());
         }
 
         // декодируем ответ
         $response->format = Client::FORMAT_JSON;
         $json = $response->data;
         if ($json === null || ! isset($json['pvz'])) {
-            throw new Exception('Ошибка ответа СДЭК: ' . $response->toString());
+            throw new Exception('Некорректный ответ: ' . $response->toString());
         }
 
-        return array_map(static function(array $config) {
-            return new Pvz($config);
-        }, $json['pvz']);
+        return array_filter(array_map(function(array $config) {
+            $pvz = new Pvz($config);
+
+            // пользовательский фильтр
+            if (isset($this->api->filterPvz)) {
+                $pvz = ($this->api->filterPvz)($pvz, $this);
+            }
+
+            return $pvz;
+        }, $json['pvz']));
     }
 }

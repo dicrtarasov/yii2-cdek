@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 27.02.20 00:28:12
+ * @version 28.02.20 04:02:22
  */
 
 declare(strict_types = 1);
@@ -11,12 +11,11 @@ namespace dicr\cdek;
 
 use dicr\http\CachingClient;
 use dicr\http\HttpCompressionBehavior;
-use yii\base\InvalidConfigException;
 
 /**
  * Компонент API службы доставки СДЭК v1.5.
  *
- * @link https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129&src=contextnavpagetreemode
+ * @link https://confluence.cdek.ru/display/documentation
  */
 class CdekApi extends CachingClient
 {
@@ -25,6 +24,24 @@ class CdekApi extends CachingClient
 
     /** @var string url тестовой интеграции */
     public const URL_TEST = 'https://integration.edu.cdek.ru';
+
+    /** @var string тестовый аккаунт */
+    public const LOGIN_TEST = 'z9GRRu7FxmO53CQ9cFfI6qiy32wpfTkd';
+
+    /** @var string тестовый Secure password */
+    public const PASSWORD_TEST = 'w24JTCv4MnAcuRTx0oHjHLDtyt3I6IBq';
+
+    /** @var string локализация по-умолчанию */
+    public const LANG_DEFAULT = 'rus';
+
+    /** @var string код страны по-умолчанию */
+    public const COUNTRY_CODE_DEFAULT = 'ru';
+
+    /** @var int номер страницы по-умолчанию */
+    public const PAGE_DEFAULT = 0;
+
+    /** @var int размер страницы по-умолчанию */
+    public const SIZE_DEFAULT = 1000;
 
     /** @var int достака курьером от дверей до дверей */
     public const DELIVERY_DOOR_DOOR = 1;
@@ -233,7 +250,11 @@ class CdekApi extends CachingClient
     /** @var string URL API интеграции */
     public $baseUrl = self::URL_INTEGRATION;
 
-    /** @var string логин магазина */
+    /**
+     * @var string логин магазина
+     * При использовании тарифов для обычной доставки авторизация не обязательна и параметры authLogin и secure можно
+     *     не передавать.
+     */
     public $login;
 
     /** @var string пароль магазина */
@@ -253,30 +274,29 @@ class CdekApi extends CachingClient
         // volume => объем посылки по-умолчанию
     ];
 
-    /** @var \Closure function(\dicr\cdek\Pvz $pvz, \dicr\cdek\PvzRequest $request) : Pvz|null перезаписывает и фильтрует список ПВЗ */
-    public $overridePvz;
-
-    /** @var \Closure function(\dicr\cdek\CalcRequest, \dicr\cdek\CalcResult) : \dicr\cdek\CalcResult перезаписывает рассчет стоимости */
-    public $overrideCost;
+    /**
+     * @var \Closure пользовательский фильтр регионов
+     * function(\dicr\cdek\Region, \dicr\cdek\RegionRequest) : \dicr\cdek\Region|null
+     */
+    public $filterRegion;
 
     /**
-     * {@inheritDoc}
-     * @see \yii\base\BaseObject::init()
+     * @var \Closure пользовательский фильтр городов
+     * function(\dicr\cdek\City, \dicr\cdek\CityRequest) : \dicr\cdek\City|null
      */
-    public function init()
-    {
-        parent::init();
+    public $filterCity;
 
-        // login
-        if (empty($this->login)) {
-            throw new InvalidConfigException('login');
-        }
+    /**
+     * @var \Closure пользовательский фильтр пунктов самовывоза
+     * function(\dicr\cdek\Pvz, \dicr\cdek\PvzRequest) : \dicr\cdek\Pvz|null
+     */
+    public $filterPvz;
 
-        // password
-        if (empty($this->password)) {
-            throw new InvalidConfigException('password');
-        }
-    }
+    /**
+     * @var \Closure пользовательский фильтр результатов рассчета стоимости
+     * function(\dicr\cdek\CalcResult, \dicr\cdek\CalcRequest) : \dicr\cdek\CalcResult
+     */
+    public $filterCalc;
 
     /**
      * {@inheritDoc}

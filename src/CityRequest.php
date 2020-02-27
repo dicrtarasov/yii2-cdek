@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 27.02.20 02:19:33
+ * @version 28.02.20 02:16:22
  */
 
 declare(strict_types = 1);
@@ -15,6 +15,7 @@ use yii\base\Exception;
 use yii\httpclient\Client;
 use function array_filter;
 use function array_map;
+use function is_array;
 
 /**
  * Запрос списка городов.
@@ -41,10 +42,10 @@ class CityRequest extends AbstractRequest
     public $regionFiasGuid;
 
     /** @var int|null Номер страницы выборки результата. По умолчанию 0 */
-    public $page = 0;
+    public $page;
 
     /** @var int|null Ограничение выборки результата. По умолчанию 1000 */
-    public $size = 1000;
+    public $size;
 
     /** @var string string(2) Код страны в формате ISO 3166-1 alpha-2 */
     public $countryCode;
@@ -62,7 +63,7 @@ class CityRequest extends AbstractRequest
     public $postcode;
 
     /** @var string|null string(3) Локализация. По-умолчанию "rus" */
-    public $lang = 'rus';
+    public $lang;
 
     /**
      * @inheritDoc
@@ -79,7 +80,7 @@ class CityRequest extends AbstractRequest
             'cityName' => 'Название города',
             'cityCode' => 'Код города СДЭК',
             'postcode' => 'Почтовый индекс',
-            'lang' => 'Язык'
+            'lang' => 'Локализация'
         ];
     }
 
@@ -89,20 +90,25 @@ class CityRequest extends AbstractRequest
     public function rules()
     {
         return [
-            [['regionCodeExt', 'regionCode', 'cityCode'], 'default'],
-            [['regionCodeExt', 'regionCode', 'cityCode'], 'integer', 'min' => 1],
-            [['regionCodeExt', 'regionCode', 'cityCode'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+            ['regionCodeExt', 'trim'],
+            ['regionCodeExt', 'default'],
+            ['regionCodeExt', 'string', 'max' => 10],
+
+            [['regionCode', 'cityCode'], 'default'],
+            [['regionCode', 'cityCode'], 'integer', 'min' => 1],
+            [['regionCode', 'cityCode'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['regionFiasGuid', 'trim'],
             ['regionFiasGuid', 'default'],
+            ['regionFiasGuid', 'string', 'max' => 45],
 
-            ['page', 'default', 'value' => 0],
+            ['page', 'default'],
             ['page', 'integer', 'min' => 0],
-            ['page', 'filter', 'filter' => 'intval'],
+            ['page', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
-            ['size', 'default', 'value' => 1000],
+            ['size', 'default'],
             ['size', 'integer', 'min' => 1],
-            ['size', 'filter', 'filter' => 'intval'],
+            ['size', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['countryCode', 'trim'],
             ['countryCode', 'default'],
@@ -113,44 +119,32 @@ class CityRequest extends AbstractRequest
 
             ['postcode', 'default'],
             ['postcode', 'integer', 'min' => 1],
+            ['postcode', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
-            ['lang', 'default', 'value' => 'rus'],
+            ['lang', 'default'],
             ['lang', 'string', 'length' => 3]
         ];
     }
 
     /**
-     * Даные для запроса.
+     * Параметры запроса.
      *
      * @return array
      */
     public function getParams()
     {
         $params = $this->toArray();
-        if ($params['page'] === 0) {
-            unset($params['page']);
-        }
 
-        if ($params['size'] === 1000) {
-            unset($params['size']);
-        }
-
-        if ($params['lang'] === 'rus') {
-            unset($params['lang']);
-        }
-
-        return array_filter($params, static function($val) {
-            return $val !== null;
+        return array_filter($params, static function($param) {
+            return $param !== null && $param !== '';
         });
     }
 
     /**
      * Отправка запроса.
      *
-     * @return array
-     * @throws \dicr\validate\ValidateException
+     * @return \dicr\cdek\City[]
      * @throws \yii\base\Exception
-     * @throws \yii\httpclient\Exception
      */
     public function send()
     {
@@ -158,17 +152,28 @@ class CityRequest extends AbstractRequest
             throw new ValidateException($this);
         }
 
+        // отправляем запрос
         $request = $this->api->get(self::REQUEST_URL_JSON, $this->params);
         $response = $request->send();
         if (! $response->isOk) {
             throw new Exception('Ошибка запроса: ' . $response->toString());
         }
 
+        // декодируем ответ
         $response->format = Client::FORMAT_JSON;
         $json = $response->data;
+        if (! is_array($json)) {
+            throw new Exception('Некорректный ответ: ' . $response->toString());
+        }
 
-        return array_map(static function(array $config) {
-            return new City($config);
-        }, $json);
+        return array_filter(array_map(function(array $config) {
+            $city = new City($config);
+
+            if (isset($this->api->filterCity)) {
+                $city = ($this->api->filterCity)($city, $this);
+            }
+
+            return $city;
+        }, $json));
     }
 }

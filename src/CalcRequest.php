@@ -3,18 +3,19 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 26.02.20 19:39:00
+ * @version 28.02.20 03:58:03
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek;
 
+use dicr\validate\ValidateException;
 use yii\base\Exception;
-use yii\caching\TagDependency;
-use yii\helpers\Json;
 use yii\httpclient\Client;
 use function array_key_exists;
 use function is_array;
+use function is_numeric;
+use function md5;
 
 /**
  * Запрос рассчета доставки.
@@ -41,6 +42,8 @@ use function is_array;
  * передавать в валюте взаиморасчетов). Услуга 30 доступна только для договора ИМ, поэтому в запросе должны быть
  * переданы значения authLogin и secure. Для услуг 24,25 и 32 в param передается значение количества.
  *
+ * @property-read array $params параметры запроса
+ *
  * @link https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129#id-%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%BE%D0%B1%D0%BC%D0%B5%D0%BD%D0%B0%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%BC%D0%B8(v1.5)-4.14.2.%D0%A0%D0%B0%D1%81%D1%87%D0%B5%D1%82%D1%81%D1%82%D0%BE%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%D0%BF%D0%BE%D1%82%D0%B0%D1%80%D0%B8%D1%84%D0%B0%D0%BC%D0%B1%D0%B5%D0%B7%D0%BF%D1%80%D0%B8%D0%BE%D1%80%D0%B8%D1%82%D0%B5%D1%82%D0%B0
  */
 class CalcRequest extends AbstractRequest
@@ -51,39 +54,67 @@ class CalcRequest extends AbstractRequest
     /** @var string URL API калькулятора */
     public const REQUEST_URL = 'http://api.cdek.ru/calculator/calculate_price_by_json.php';
 
-    /** @var string Планируемая дата отправки заказа в формате “ГГГГ-ММ-ДД” */
+    /** @var string|null Планируемая дата отправки заказа в формате “ГГГГ-ММ-ДД” */
     public $dateExecute;
 
-    /** @var int Код города отправителя из базы СДЭК */
+    /** @var string|null Локализация названий городов. По умолчанию "rus" */
+    public $lang;
+
+    /** @var string|null Код страны отправителя в формате ISO_3166-1_alpha-2 */
+    public $senderCountryCode;
+
+    /** @var int|null Код города отправителя из базы СДЭК */
     public $senderCityId;
 
-    /** @var int Индекс города отправителя из базы СДЭК (если не задан senderCityId) */
+    /** @var int|null Индекс города отправителя из базы СДЭК (если не задан senderCityId) */
     public $senderCityPostCode;
 
-    /** @var int Код города получателя из базы СДЭК */
+    /** @var string|null Наименование города отправителя */
+    public $senderCity;
+
+    /** @var float|null Широта города отправителя */
+    public $senderLatitude;
+
+    /** @var float|null Долгота города отправителя */
+    public $senderLongitude;
+
+    /** @var string|null Код страны получателя в формате ISO_3166-1_alpha-2 */
+    public $receiverCountryCode;
+
+    /** @var int|null Код города получателя из базы СДЭК */
     public $receiverCityId;
 
-    /** @var int Индекс города получателя из базы СДЭК (если не задан receiverCityId) */
+    /** @var int|null Индекс города получателя из базы СДЭК (если не задан receiverCityId) */
     public $receiverCityPostCode;
+
+    /** @var string|null Наименование города получателя */
+    public $receiverCity;
+
+    /** @var float|null Широта города получателя */
+    public $receiverLatitude;
+
+    /** @var float|null Долгота города получателя */
+    public $receiverLongitude;
 
     /** @var int Код выбранного тарифа (CdekApi::TARIF_TYPES) */
     public $tariffId;
 
     /**
-     * @var array Список тарифов (если не задан tariffId)
+     * @var array[] Список тарифов (если не задан tariffId)
      * - int $id код тарифа (CdekApi::TARIF_TYPES)
      * - int $priority Заданный приоритет
+     * - в документации ошибка - modeId в тарифе не учитывается
      */
     public $tariffList;
 
     /**
      * @var int режим доставки (CdekApi::DELIVERY_TYPES) если указан tariffList
-     * (ошибка в документации, modeId не в списке тарифов)
+     * (ошибка в документации, modeId нет в списке тарифов, поэтому его нужно указывать даже при tariffList)
      */
     public $modeId;
 
     /**
-     * @var array Габаритные характеристики места
+     * @var array[] Габаритные характеристики места
      * - float $weight - Вес места, кг
      * - float $volume - Объём места, м³
      * - int $length - Длина места (в сантиметрах, если не задан volume)
@@ -100,14 +131,48 @@ class CalcRequest extends AbstractRequest
     public $services;
 
     /**
+     * @inheritDoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'dateExecute' => 'Дата отправки',
+            'lang' => 'Локализация',
+            'senderCountryCode' => 'Код страны отправителя',
+            'senderCityId' => 'Код города отправителя',
+            'senderCityPostCode' => 'Индекс отправителя',
+            'senderCity' => 'Город отправителя',
+            'senderLatitude' => 'Широта отправителя',
+            'senderLongitude' => 'Долгота отправителя',
+            'receiverCountryCode' => 'Код страны получателя',
+            'receiverCityId' => 'Код города получателя',
+            'receiverCityPostCode' => 'Индекс получателя',
+            'receiverCity' => 'Город получателя',
+            'receiverLatitude' => 'Широта получателя',
+            'receiverLongitude' => 'Долгота получателя',
+            'tariffId' => 'Тариф',
+            'tariffList' => 'Список тарифов',
+            'goods' => 'Характеристики посылки',
+        ];
+    }
+
+    /**
      * {@inheritDoc}
      * @see \yii\base\Model::rules()
      */
     public function rules()
     {
         return [
-            ['dateExecute', 'default', 'value' => date('Y-m-d')],
+            ['dateExecute', 'default'],
             ['dateExecute', 'date', 'format' => 'php:Y-m-d'],
+
+            ['lang', 'trim'],
+            ['lang', 'default', 'value' => 'rus'],
+            ['lang', 'string', 'length' => 3],
+
+            [['senderCountryCode', 'receiverCountryCode'], 'trim'],
+            [['senderCountryCode', 'receiverCountryCode'], 'default', 'value' => 'ru'],
+            [['senderCountryCode', 'receiverCountryCode'], 'string', 'length' => 2],
 
             [['senderCityId', 'receiverCityId'], 'default'],
             [['senderCityId', 'receiverCityId'], 'integer', 'min' => 1],
@@ -117,240 +182,177 @@ class CalcRequest extends AbstractRequest
             [['senderCityPostCode', 'receiverCityPostCode'], 'integer', 'min' => 1, 'max' => 999999],
             [['senderCityPostCode', 'receiverCityPostCode'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
-            [['senderCityId', 'senderCityPostCode'], function($attribute) {
-                if (empty($this->senderCityId) && empty($this->senderCityPostCode)) {
-                    if (! empty($this->api->defaultSenderCityId) || ! empty($this->api->defaultSenderCityPostCode)) {
-                        $this->senderCityId = $this->api->defaultSenderCityId;
-                        $this->senderCityPostCode = $this->api->defaultSenderCityPostCode;
-                    } else {
-                        $this->addError($attribute, 'Требуется senderCityId либо senderCityPostCode');
-                    }
-                }
-            }, 'skipOnEmpty' => false],
+            [['senderCity', 'receiverCity'], 'trim'],
+            [['senderCity', 'receiverCity'], 'default'],
 
-            [['receiverCityId', 'receiverCityPostCode'], function($attribute) {
-                if (empty($this->receiverCityId) && empty($this->receiverCityPostCode)) {
-                    $this->addError($attribute, 'Требуется receiverCityId либо receiverCityPostCode');
-                }
-            }, 'skipOnEmpty' => false],
+            [['senderLatitude', 'senderLongitude', 'receiverLatitude', 'receiverLongitude'], 'default'],
+            [['senderLatitude', 'senderLongitude', 'receiverLatitude', 'receiverLongitude'], 'number',
+             'min' => 0.000001],
+            [['senderLatitude', 'senderLongitude', 'receiverLatitude', 'receiverLongitude'], 'filter',
+             'filter' => 'floatval', 'skipOnEmpty' => true],
+
+            [['senderCityId', 'senderCityPostCode'], 'required',
+             'when' => static function(self $model, string $attribute) {
+                 return empty($attribute === 'senderCityId' ? $model->senderCityPostCode : $model->senderCityId);
+             }, 'skipOnEmpty' => false],
+
+            [['receiverCityId', 'receiverCityPostCode'], 'required',
+             'when' => static function(self $model, string $attribute) {
+                 return empty($attribute === 'receiverCityId' ? $model->receiverCityPostCode : $model->receiverCityId);
+             }, 'skipOnEmpty' => false],
 
             ['tariffId', 'default'],
             ['tariffId', 'in', 'range' => array_keys(CdekApi::TARIF_TYPES)],
             ['tariffId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['tariffList', 'default'],
-            ['tariffList', 'validateTariffList', 'skipOnEmpty' => true],
+            ['tariffList', function($attribute) {
+                $list = [];
+
+                foreach (array_values((array)($this->{$attribute} ?: [])) as $i => $tarif) {
+                    if (is_numeric($tarif)) {
+                        $tarif = ['id' => (int)$tarif];
+                    } elseif (! is_array($tarif)) {
+                        $this->addError($attribute, 'Некорректный тип данных тарифа');
+
+                        return false;
+                    }
+
+                    $id = (int)($tarif['id'] ?? 0);
+                    $priority = isset($tarif['priority']) ? (int)$tarif['priority'] : $i;
+
+                    if (! array_key_exists($tarif['id'], CdekApi::TARIF_TYPES)) {
+                        $this->addError($attribute, 'Некорректный код тарифа: ' . $tarif['id']);
+
+                        return false;
+                    }
+
+                    $list[] = ['id' => $id, 'priority' => $priority];
+                }
+
+                $this->{$attribute} = $list ?: null;
+
+                return true;
+            }],
+
+            [['tariffId', 'tariffList'], 'required', 'when' => static function(self $model, $attribute) {
+                return empty($attribute === 'tariffId' ? $model->tariffList : $model->tariffId);
+            }, 'skipOnEmpty' => false],
 
             ['modeId', 'default'],
             ['modeId', 'in', 'range' => array_keys(CdekApi::DELIVERY_TYPES)],
             ['modeId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
-            [['tariffId', 'tariffList'], function($attribute) {
-                // если не установлен ни код тарифа, ни список тарифов
-                if (empty($this->tariffId) && empty($this->tariffList)) {
-                    // если заданы значения по-умолчанию
-                    if (! empty($this->api->defaultTariffId) || ! empty($this->api->defaultTariffList)) {
-                        // берем значения по-умолчанию
-                        $this->tariffId = $this->api->defaultTariffId;
-                        $this->tariffList = $this->api->defaultTariffList;
+            ['goods', 'required'],
+            ['goods', function($attribute) {
+                $goods = [];
 
-                        // повторно проверяем список тарифов
-                        /** @noinspection NotOptimalIfConditionsInspection */
-                        if (! empty($this->tariffList)) {
-                            $this->validateTariffList();
-                        }
-                    } else {
-                        $this->addError($attribute, 'необходимо установить tariffId либо tariffList');
+                // проверяем параметры товаров посылки
+                foreach ((array)($this->{$attribute} ?: []) as $good) {
+                    $weight = (float)($good['weight'] ?? 0);
+                    $width = (int)($good['width'] ?? 0);
+                    $height = (int)($good['height'] ?? 0);
+                    $length = (int)($good['length'] ?? 0);
+                    $volume = (float)($good['volume'] ?? 0);
+
+                    if ($weight <= 0) {
+                        $this->addError($attribute, 'Некоректный вес товара');
+
+                        return false;
                     }
+
+                    $good = ['weight' => $weight];
+
+                    if (! empty($width) && ! empty($height) && ! empty($length)) {
+                        if ($width < 0 || $height < 0 || $length < 0) {
+                            $this->addError($attribute, 'Некорректные размеры товара');
+
+                            return false;
+                        }
+
+                        $good['width'] = $width;
+                        $good['height'] = $height;
+                        $good['length'] = $length;
+                    } else {
+                        if ($volume < 0) {
+                            $this->addError($attribute, 'Некорректный объем посылки');
+
+                            return false;
+                        }
+
+                        if (empty($volume)) {
+                            $this->addError($attribute, 'Не заданы габариты посылки');
+                        }
+
+                        $good['volume'] = $volume;
+                    }
+
+                    $goods[] = $good;
                 }
+
+                if (empty($goods)) {
+                    $this->addError($attribute, 'Не заданы параметры товаров посылки');
+
+                    return false;
+                }
+
+                $this->{$attribute} = $goods;
+
+                return true;
             }, 'skipOnEmpty' => false],
 
-            ['goods', 'default', 'value' => []],
-            ['goods', 'validateGoods', 'skipOnEmpty' => false],
+            ['services', 'default'],
+            ['services', function($attribute) {
+                $services = [];
 
-            ['services', 'default', 'value' => $this->api->defaultServices],
-            ['services', 'validateServices', 'skipOnEmpty' => false],
+                foreach ((array)($this->{$attribute} ?: []) as $service) {
+                    $id = (int)($service['id'] ?? 0);
+                    $param = (int)($service['param'] ?? 0);
+
+                    if ($id < 1) {
+                        $this->addError($attribute, 'Некорректный id сервиса');
+
+                        return false;
+                    }
+
+                    $service = ['id' => $id];
+                    if (! empty($param)) {
+                        $service['param'] = $param;
+                    }
+
+                    $services[] = $service;
+                }
+
+                $this->{$attribute} = $services ?: null;
+
+                return true;
+            }]
         ];
     }
 
     /**
-     * Проверяет список тарифов.
+     * Возвращает параметры запроса.
      *
-     * @return bool
+     * @return array
      */
-    public function validateTariffList()
+    public function getParams()
     {
-        $attribute = 'tariffList';
-        $val = (array)($this->{$attribute} ?: []);
+        $params = $this->toArray();
+        $params['version'] = self::API_VERSION;
 
-        if (empty($val)) {
-            $this->{$attribute} = null;
+        if (! empty($this->api->login)) {
+            $params['authLogin'] = $this->api->login;
 
-            return true;
-        }
-
-        foreach ($val as $i => &$tarif) {
-            if (is_numeric($tarif)) {
-                $tarif = [
-                    'id' => (int)$tarif
-                ];
-            } elseif (! is_array($tarif)) {
-                $this->addError($attribute, 'Некорректный тип данных тарифа');
-
-                return false;
+            if (empty($params['dateExecute'])) {
+                $params['dateExecute'] = date('Y-m-d');
             }
 
-            if (! array_key_exists($tarif['id'] ?? '', CdekApi::TARIF_TYPES)) {
-                $this->addError($attribute, 'Некорректный код тарифа: ' . $tarif['id']);
-
-                return false;
-            }
-
-            $tarif['priority'] = isset($tarif['priority']) ? (int)$tarif['priority'] : (int)$i;
+            $params['secure'] = md5($params['dateExecute'] . '&' . $this->api->password);
         }
 
-        unset($tarif);
-        $this->{$attribute} = $val;
-
-        return true;
-    }
-
-    /**
-     * Валидация товаров.
-     *
-     * @return bool
-     */
-    public function validateGoods()
-    {
-        $attribute = 'goods';
-        $val = (array)($this->{$attribute} ?: []);
-
-        // если товары не заданы, то используем парамеры посылки по-умолчанию
-        if (empty($val)) {
-            if (! empty($this->api->defaultWeight) && ! empty($this->api->defaultVolume)) {
-                $val = [
-                    [
-                        'weight' => $this->api->defaultWeight,
-                        'volume' => $this->api->defaultVolume
-                    ]
-                ];
-            } else {
-                $this->addError($attribute, 'Не заданы товары и параметры веса и объема посылки по-умолчанию');
-
-                return false;
-            }
-        }
-
-        // проверяем параметры товаров посылки
-        foreach ($val as &$good) {
-            // если не задан вес товара, то берем по-умолчанию
-            if (empty($good['weight'])) {
-                $good['weight'] = $this->api->defaultWeight;
-            }
-
-            // проверяем вес товара
-            /** @noinspection UnnecessaryCastingInspection */
-            $good['weight'] = (float)$good['weight'];
-            if ($good['weight'] <= 0) {
-                $this->addError($attribute, 'Некорректный вес товара');
-
-                return false;
-            }
-
-            // если не заданы никакие размеры, то берем объем послыки по-умолчанию
-            if (empty($good['volume']) && empty($good['width']) && empty($good['height']) && empty($good['length'])) {
-                $good['volume'] = $this->api->defaultVolume;
-            }
-
-            // проверяем вариант указания объема
-            if (isset($good['volume'])) {
-                /** @noinspection UnnecessaryCastingInspection */
-                $good['volume'] = (float)$good['volume'];
-                if ($good['volume'] <= 0) {
-                    $this->addError($attribute, 'Некоректный обьем товара');
-
-                    return false;
-                }
-            } else {
-                // проверяем вариант через линейные размеры
-                foreach (['length', 'width', 'height'] as $field) {
-                    $good[$field] = (int)($good[$field] ?? 0);
-                    if ($good[$field] <= 0) {
-                        $this->addError($attribute, 'Некорректный ' . $field . ' товара');
-
-                        return false;
-                    }
-                }
-            }
-        }
-
-        unset($good);
-        $this->{$attribute} = $val;
-
-        return true;
-    }
-
-    /**
-     * Валидация сервисов.
-     *
-     * @return bool
-     */
-    public function validateServices()
-    {
-        $attribute = 'services';
-        $val = $this->{$attribute};
-
-        if (empty($val)) {
-            $this->{$attribute} = null;
-
-            return true;
-        }
-
-        if (! is_array($val)) {
-            $this->addError($attribute, 'Некорректный тип значения сервисов');
-
-            return false;
-        }
-
-        foreach ($val as &$service) {
-            if (is_numeric($service)) {
-                $service = ['id' => $service];
-            } elseif (! is_array($service)) {
-                $this->addError($attribute, 'некорректный тип значения');
-
-                return false;
-            }
-
-            $service['id'] = (int)($service['id'] ?? 0);
-            if (! array_key_exists($service['id'], CdekApi::SERVICE_TYPES)) {
-                $this->addError($attribute, 'некорректный код сервиса');
-
-                return false;
-            }
-        }
-
-        unset($service);
-        $this->{$attribute} = $val;
-
-        return true;
-    }
-
-    /**
-     * Возвращает секретный ключ.
-     *
-     * @return string|null
-     */
-    protected function secure()
-    {
-        if (empty($this->api->password)) {
-            return null;
-        }
-
-        if (empty($this->dateExecute)) {
-            $this->dateExecute = date('Y-m-d');
-        }
-
-        return md5($this->dateExecute . '&' . $this->api->password);
+        return array_filter($params, static function($param) {
+            return $param !== null && $param !== '';
+        });
     }
 
     /**
@@ -362,66 +364,30 @@ class CalcRequest extends AbstractRequest
     public function send()
     {
         if (! $this->validate()) {
-            throw new Exception('Ошибка валидации: ' . array_values($this->firstErrors)[0]);
-        }
-
-        // готовим данные для отправки
-        $data = array_merge($this->toArray(), [
-            'version' => self::API_VERSION
-        ]);
-
-        // авторизация
-        if (isset($this->api->login)) {
-            $data['authLogin'] = $this->api->login;
-            $data['secure'] = $this->secure();
-        }
-
-        // готовим POST-запрос
-        $request = $this->api->post(self::REQUEST_URL);
-        $request->format = Client::FORMAT_JSON;
-        $request->data = array_filter($data, static function($val) {
-            return $val !== null && $val !== '';
-        });
-
-        $content = null;
-        $key = $request->toString();
-
-        // берем из кэша
-        if (! empty($this->api->calcCache)) {
-            $content = $this->api->calcCache->get($key);
-            if (! empty($content)) {
-                /** @noinspection PhpUsageOfSilenceOperatorInspection */
-                $content = @gzdecode($content);
-            }
+            throw new ValidateException($this);
         }
 
         // отправляем запрос
-        if (! isset($content) || $content === false) {
-            $response = $request->send();
-            if (! $response->isOk) {
-                throw new Exception('Ошибка запроса СДЭК: ' . $response->statusCode);
-            }
-
-            $content = $response->content;
+        $request = $this->api->post(self::REQUEST_URL, $this->params);
+        $request->format = Client::FORMAT_JSON;
+        $response = $request->send();
+        if (! $response->isOk) {
+            throw new Exception('Ошибка запроса: ' . $response->toString());
         }
 
-        // декодируем Json
-        $json = Json::decode($content);
+        // декодируем ответ
+        $response->format = Client::FORMAT_JSON;
+        $json = $response->data;
         if ($json === null || empty($json['result']) || ! empty($json['error'])) {
-            if (! empty($json['error'][0]['text'])) {
-                throw new Exception('Ошибка СДЭК: ' . $json['error'][0]['text']);
-            }
-
-            throw new Exception('Ошибка декодирования ответа СДЭК: ' . $content);
+            throw new Exception('Ошибка ответа: ' . $response->toString());
         }
 
-        // сохраняем контент в кеш
-        if (! empty($this->api->calcCache)) {
-            $this->api->calcCache->set($key, gzencode($content), $this->api->calcCacheDuration, new TagDependency([
-                'tags' => [__CLASS__, __NAMESPACE__]
-            ]));
+        $result = new CalcResult($json['result']);
+
+        if (isset($this->api->filterCalc)) {
+            $result = ($this->api->filterCalc)($result, $this);
         }
 
-        return new CalcResult($json['result']);
+        return $result;
     }
 }

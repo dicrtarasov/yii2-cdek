@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 27.02.20 02:19:33
+ * @version 28.02.20 02:15:52
  */
 
 declare(strict_types = 1);
@@ -42,45 +42,13 @@ class RegionRequest extends AbstractRequest
     public $countryCodeExt;
 
     /** @var int|null Номер страницы выборки результата. По умолчанию 0 */
-    public $page = 0;
+    public $page;
 
     /** @var int|null Ограничение выборки результата. По умолчанию 1000 */
-    public $size = 1000;
+    public $size;
 
     /** @var string|null [3] Локализация. По умолчанию "rus". */
-    public $lang = 'rus';
-
-    /**
-     * {@inheritDoc}
-     */
-    public function rules()
-    {
-        return [
-            ['regionCodeExt', 'default'],
-            ['regionCodeExt', 'string', 'max' => 10],
-
-            [['regionCode', 'countryCodeExt'], 'default'],
-            [['regionCode', 'countryCodeExt'], 'integer', 'min' => 1],
-            [['regionCode', 'countryCodeExt'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
-
-            ['regionFiasGuid', 'default'],
-            ['regionFiasGuid', 'string', 'max' => 45],
-
-            ['countryCode', 'default'],
-            ['countryCode', 'string', 'length' => 2],
-
-            ['page', 'default', 'value' => 0],
-            ['page', 'integer', 'min' => 0],
-            ['page', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
-
-            ['size', 'default', 'value' => 1000],
-            ['size', 'integer', 'min' => 1],
-            ['size', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
-
-            ['lang', 'default', 'value' => 'rus'],
-            ['lang', 'string', 'max' => 3]
-        ];
-    }
+    public $lang;
 
     /**
      * @inheritDoc
@@ -100,6 +68,42 @@ class RegionRequest extends AbstractRequest
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function rules()
+    {
+        return [
+            ['regionCodeExt', 'trim'],
+            ['regionCodeExt', 'default'],
+            ['regionCodeExt', 'string', 'max' => 10],
+
+            [['regionCode', 'countryCodeExt'], 'default'],
+            [['regionCode', 'countryCodeExt'], 'integer', 'min' => 1],
+            [['regionCode', 'countryCodeExt'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+
+            ['regionFiasGuid', 'trim'],
+            ['regionFiasGuid', 'default'],
+            ['regionFiasGuid', 'string', 'max' => 45],
+
+            ['countryCode', 'trim'],
+            ['countryCode', 'default'],
+            ['countryCode', 'string', 'length' => 2],
+
+            ['page', 'default'],
+            ['page', 'integer', 'min' => 0],
+            ['page', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+
+            ['size', 'default'],
+            ['size', 'integer', 'min' => 1],
+            ['size', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
+
+            ['lang', 'trim'],
+            ['lang', 'default'],
+            ['lang', 'string', 'max' => 3]
+        ];
+    }
+
+    /**
      * Даные для запроса.
      *
      * @return array
@@ -107,27 +111,16 @@ class RegionRequest extends AbstractRequest
     public function getParams()
     {
         $params = $this->toArray();
-        if ($params['page'] === 0) {
-            unset($params['page']);
-        }
 
-        if ($params['size'] === 1000) {
-            unset($params['size']);
-        }
-
-        if ($params['lang'] === 'rus') {
-            unset($params['lang']);
-        }
-
-        return array_filter($params, static function($val) {
-            return $val !== null;
+        return array_filter($params, static function($param) {
+            return $param !== null && $param !== '';
         });
     }
 
     /**
      * Отправляет запрос и возвращает список регионов.
      *
-     * @return array|\dicr\cdek\Region
+     * @return \dicr\cdek\Region[]
      * @throws Exception
      */
     public function send()
@@ -136,23 +129,28 @@ class RegionRequest extends AbstractRequest
             throw new ValidateException($this);
         }
 
-        $request = $this->api->get(self::URL_JSON, $this->params);
-
         // отправляем запрос
+        $request = $this->api->get(self::URL_JSON, $this->params);
         $response = $request->send();
         if (! $response->isOk) {
-            throw new Exception('Некорректный ответ от СДЭК: ' . $response->toString());
+            throw new Exception('Ошибка запроса: ' . $response->toString());
         }
 
         // декодируем ответ
         $response->format = Client::FORMAT_JSON;
         $json = $response->data;
         if ($json === null) {
-            throw new Exception('Ошибка декодирование ответа СДЭК: ' . $response->toString());
+            throw new Exception('Некорректный ответ: ' . $response->toString());
         }
 
-        return array_map(static function($config) {
-            return new Region($config);
-        }, $json);
+        return array_filter(array_map(function($config) {
+            $region = new Region($config);
+
+            if (isset($this->api->filterRegion)) {
+                $region = ($this->api->filterRegion)($region, $this);
+            }
+
+            return $region;
+        }, $json));
     }
 }

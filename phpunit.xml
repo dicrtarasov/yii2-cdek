@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ @copyright 2019-2020 Dicr http://dicr.org
+  ~ @author Igor A Tarasov <develop@dicr.org>
+  ~ @license proprietary
+  ~ @version 28.02.20 04:05:55
+  -->
+
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/6.5/phpunit.xsd"
     bootstrap="./tests/bootstrap.php"
     colors="true"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
-    stopOnError="false"
-    stopOnFailure="false"
 >
     <testsuites>
         <testsuite name="Dicr Test Suite">

@@ -1,4 +1,9 @@
 # API службы доставки СДЭК для Yii2
+Реализация JSON-протокола обмена данными СДЭК версии 1.5
+
+Чтобы минимизировать число обращений к серверу СДЭК, запросы выполняются с кэшированием,
+параметры которого могут быть настроены в компоненте `CdekApi` который наследует `CachingClient`
+из пакета `dicr/yii2-http`.
 
 ## Конфигурация
 Конмпонент `CdekApi` настраивается в конфиге приложения.
@@ -8,11 +13,15 @@ return [
     'components' => [
         'cdek' => [
             'class' => dicr\cdek\CdekApi::class,
+            // для тестирования используем тестовые url, логин и пароль
             'baseUrl' => dicr\cdek\CdekApi::URL_TEST,
             'login' => dicr\cdek\CdekApi::LOGIN_TEST,
             'password' => dicr\cdek\CdekApi::PASSWORD_TEST,
+            // конфиг запроса стоимости доставки по-умолчанию
             'calcRequestConfig' => [
+                // город отправителя у нас всегда один, поэтому пропишем его в конфиг по-умолчанию
                 'senderCityPostCode' => 614087, // Пермь
+                // здесь список тарифов, которые мы выбираем для доставки (можно настроить один в tariffId)
                 'tariffList' => [
                     ['id' => dicr\cdek\CdekApi::TARIF_POST_S_S],
                     ['id' => dicr\cdek\CdekApi::TARIF_POST_S_D],
@@ -59,3 +68,5 @@ $result = $api->createCalcRequest([
 ])->send();
 ```
 Пример настройки и запросов можно посмотреть в тестах `phpunits` (папка `tests`).
+
+Детальная документация по параметрам запроса - в [базе знаний СДЭК](https://confluence.cdek.ru/display/documentation).

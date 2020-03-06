@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 28.02.20 02:15:52
+ * @version 07.03.20 04:09:42
  */
 
 declare(strict_types = 1);
@@ -110,10 +110,8 @@ class RegionRequest extends AbstractRequest
      */
     public function getParams()
     {
-        $params = $this->toArray();
-
-        return array_filter($params, static function($param) {
-            return $param !== null && $param !== '';
+        return array_filter($this->toArray(), static function($param) {
+            return $param !== null && $param !== '' && $param !== [];
         });
     }
 

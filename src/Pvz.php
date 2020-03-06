@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 26.02.20 19:52:09
+ * @version 07.03.20 04:11:16
  */
 
 declare(strict_types = 1);
@@ -13,6 +13,8 @@ use yii\base\BaseObject;
 
 /**
  * Пункт выдачи заказов (ПВЗ).
+ *
+ * @link https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129#id-%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%BE%D0%B1%D0%BC%D0%B5%D0%BD%D0%B0%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%BC%D0%B8(v1.5)-4.1.PVZ%D0%9F%D0%BE%D0%BB%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5%D1%81%D0%BF%D0%B8%D1%81%D0%BA%D0%B0%D0%9F%D0%92%D0%97
  */
 class Pvz extends BaseObject
 {
@@ -31,7 +33,7 @@ class Pvz extends BaseObject
     /** @var string (10) код ПВЗ */
     public $code;
 
-    /** @var string Почтовый индекс */
+    /** @var int|null Почтовый индекс */
     public $postalCode;
 
     /** @var string (50) название */
@@ -52,7 +54,7 @@ class Pvz extends BaseObject
     /** @var string Название региона */
     public $regionName;
 
-    /** @var int код города по базе СДЭК */
+    /** @var int|null код города по базе СДЭК */
     public $cityCode;
 
     /** @var string (50) название города */
@@ -67,25 +69,16 @@ class Pvz extends BaseObject
     /** @var string Полный адрес с указанием страны, региона, города, и т.д. */
     public $fullAddress;
 
-    /** @var string Описание местоположения */
-    public $addressComment;
-
     /** @var string Телефон */
     public $phone;
-
-    /** @var string Адрес электронной почты */
-    public $email;
-
-    /** @var string */
-    public $qqId;
 
     /** @var string (255) Примечание по ПВЗ */
     public $note;
 
-    /** @var float Координаты местоположения (долгота) в градусах */
+    /** @var float|null Координаты местоположения (долгота) в градусах */
     public $coordX;
 
-    /** @var float Координаты местоположения (широта) в градусах */
+    /** @var float|null Координаты местоположения (широта) в градусах */
     public $coordY;
 
     /** @var string Тип ПВЗ: Склад СДЭК или Почтомат партнера */
@@ -100,8 +93,14 @@ class Pvz extends BaseObject
     /** @var bool Есть терминал оплаты */
     public $haveCashless;
 
+    /** @var bool|null */
+    public $haveCash;
+
     /** @var bool Разрешен наложенный платеж в ПВЗ */
     public $allowedCod;
+
+    /** @var bool только прием */
+    public $takeOnly;
 
     /** @var string (255) Ближайшая станция/остановка транспорта */
     public $nearestStation;
@@ -109,20 +108,104 @@ class Pvz extends BaseObject
     /** @var string (255) Ближайшая станция метро */
     public $metroStation;
 
-    /** @var string (255) Сайт пвз на странице СДЭК */
+    /** @var string|null сайт */
     public $site;
 
-    /** @var array[] [[number => 0, url => string]] массив url фотографий офиса (кроме фото как доехать) */
-    public $officeImageList;
+    /** @var string|null Адрес электронной почты */
+    public $email;
 
-    /**
-     * @var array[] [[day => period]] график работы на неделю.
-     */
-    public $workTimeYList;
+    /** @var string Описание местоположения */
+    public $addressComment;
 
     /** @var int[] лимиты веса [weightMin => ...., weightMax => ...] */
     public $weightLimit;
 
-    /** @var string[][] [[number => string]] */
+    /** @var array[] [[number => 0, url => string]] массив url фотографий офиса (кроме фото как доехать) */
+    public $officeImageList;
+
+    /** @var array[] [[day => period]] график работы на неделю. */
+    public $workTimeYList;
+
+    /** @var array|null [[number => string]] */
     public $phoneDetailList;
+
+    /**
+     * Конструктор.
+     *
+     * @param array $json
+     */
+    public function __construct(array $json = [])
+    {
+        if (! empty($json)) {
+            $this->configure($json);
+        }
+
+        parent::__construct();
+    }
+
+    /**
+     * Конфигурация из данных JSON.
+     *
+     * @param array $json
+     * @return $this
+     */
+    public function configure(array $json)
+    {
+        $this->code = (string)$json['code'];
+        $this->postalCode = ! empty($json['postalCode']) ? (int)$json['postalCode'] : null;
+        $this->name = (string)$json['name'];
+        $this->countryCode = (int)$json['countryCode'];
+        $this->countryCodeIso = (string)$json['countryCodeIso'];
+        $this->countryName = (string)$json['countryName'];
+        $this->regionCode = (int)$json['regionCode'];
+        $this->regionName = (string)$json['regionName'];
+        $this->cityCode = ! empty($json['cityCode']) ? (int)$json['cityCode'] : null;
+        $this->city = (string)$json['city'];
+        $this->workTime = (string)$json['workTime'];
+        $this->address = (string)$json['address'];
+        $this->fullAddress = (string)$json['fullAddress'];
+        $this->phone = (string)$json['phone'];
+        $this->note = (string)$json['note'];
+        $this->coordX = ! empty($json['coordX']) ? (float)$json['coordX'] : null;
+        $this->coordY = ! empty($json['coordY']) ? (float)$json['coordY'] : null;
+        $this->type = (string)$json['type'];
+        $this->ownerCode = (string)$json['ownerCode'];
+        $this->isDressingRoom = (bool)$json['isDressingRoom'];
+        $this->haveCashless = (bool)$json['haveCashless'];
+        $this->haveCash = isset($json['haveCash']) && $json['haveClash'] !== '' ? (bool)$json['haveCash'] : null;
+        $this->allowedCod = (bool)$json['allowedCod'];
+        $this->takeOnly = (bool)$json['takeOnly'];
+        $this->nearestStation = (string)$json['nearestStation'];
+        $this->metroStation = (string)$json['metroStation'];
+        $this->site = ! empty($json['site']) ? (string)$json['site'] : null;
+        $this->email = ! empty($json['email']) ? (string)$json['email'] : null;
+        $this->addressComment = (string)$json['addressComment'];
+
+        $this->weightLimit = ! empty($json['weightLimit']) ? [
+            'weightMin' => (int)$json['weightLimit']['weightMin'],
+            'weightMax' => (int)$json['weightLimit']['weightMax']
+        ] : [];
+
+        $this->officeImageList = array_map(static function(array $item) {
+            return [
+                'number' => isset($item['number']) ? (int)$item['number'] : null,
+                'url' => (string)$item['url']
+            ];
+        }, (array)($json['officeImageList'] ?? []));
+
+        $this->workTimeYList = array_map(static function(array $item) {
+            return [
+                'day' => (int)$item['day'],
+                'periods' => (string)$item['periods']
+            ];
+        }, (array)$json['workTimeYList']);
+
+        $this->phoneDetailList = array_map(static function(array $item) {
+            return [
+                'number' => (string)$item['number']
+            ];
+        }, (array)($json['phoneDetailList'] ?? []));
+
+        return $this;
+    }
 }

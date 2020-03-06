@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license proprietary
- * @version 26.02.20 19:55:41
+ * @version 07.03.20 04:09:42
  */
 
 declare(strict_types = 1);
@@ -49,4 +49,19 @@ abstract class AbstractRequest extends Model
     {
         return $this->_api;
     }
+
+    /**
+     * Параметры запроса.
+     *
+     * @return array
+     */
+    abstract protected function getParams();
+
+    /**
+     * Отправка запроса.
+     *
+     * @return mixed
+     * @throws \dicr\validate\ValidateException
+     */
+    abstract public function send();
 }

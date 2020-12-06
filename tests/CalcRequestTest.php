@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:49:42
+ * @version 06.12.20 07:58:48
  */
 
 declare(strict_types = 1);
@@ -40,7 +40,11 @@ class CalcRequestTest extends AbstractTest
                 ['id' => CdekApi::TARIF_ECOPOST_S_S]
             ],
             'goods' => [
-                ['weight' => 0.24, 'width' => 10, 'height' => 5, 'length' => 20]
+                [
+                    'weight' => 0.24,
+                    'volume' => 0.1 * 0.05 * 0.2,
+                    //'width' => 10, 'height' => 5, 'length' => 20
+                ]
             ]
         ];
 

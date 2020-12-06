@@ -3,7 +3,7 @@
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 05:46:27
+ * @version 06.12.20 07:57:47
  */
 
 declare(strict_types = 1);
@@ -43,7 +43,7 @@ class Good extends AbstractEntity
 
             ['volume', 'default'],
             ['volume', 'number', 'min' => 0.001],
-            ['volume', 'filter', 'filter' => 'floatval'],
+            ['volume', 'filter', 'filter' => 'floatval', 'skipOnEmpty' => true],
 
             [['length', 'width', 'height'], 'default'],
             [['length', 'width', 'height'], 'required', 'when' => function () : bool {

@@ -1,20 +1,30 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 07.03.20 04:09:42
+ * @license MIT
+ * @version 06.12.20 07:48:14
  */
 
 declare(strict_types = 1);
-namespace dicr\cdek;
+namespace dicr\cdek\request;
 
-use dicr\validate\ValidateException;
+use ArrayAccess;
+use dicr\cdek\AbstractRequest;
+use dicr\cdek\CdekApi;
+use dicr\cdek\entity\Good;
+use dicr\cdek\entity\ServiceParams;
+use dicr\cdek\entity\Tariff;
+use dicr\json\EntityValidator;
 use yii\base\Exception;
+use yii\base\InvalidConfigException;
 use yii\httpclient\Client;
-use function array_key_exists;
+use yii\httpclient\Request;
+
+use function array_merge;
+use function array_values;
+use function date;
 use function is_array;
-use function is_numeric;
 use function md5;
 
 /**
@@ -52,7 +62,7 @@ class CalcRequest extends AbstractRequest
     public const API_VERSION = '1.0';
 
     /** @var string URL API калькулятора */
-    public const REQUEST_URL = 'http://api.cdek.ru/calculator/calculate_price_by_json.php';
+    public const URL = '/calculator/calculate_price_by_json.php';
 
     /** @var string|null Планируемая дата отправки заказа в формате “ГГГГ-ММ-ДД” */
     public $dateExecute;
@@ -96,14 +106,11 @@ class CalcRequest extends AbstractRequest
     /** @var float|null Долгота города получателя */
     public $receiverLongitude;
 
-    /** @var int Код выбранного тарифа (CdekApi::TARIF_TYPES) */
+    /** @var int|null Код выбранного тарифа (CdekApi::TARIF_TYPES) */
     public $tariffId;
 
     /**
-     * @var array[] Список тарифов (если не задан tariffId)
-     * - int $id код тарифа (CdekApi::TARIF_TYPES)
-     * - int $priority Заданный приоритет
-     * - в документации ошибка - modeId в тарифе не учитывается
+     * @var Tariff[]|null Список тарифов (если не задан tariffId)
      */
     public $tariffList;
 
@@ -114,26 +121,19 @@ class CalcRequest extends AbstractRequest
     public $modeId;
 
     /**
-     * @var array[] Габаритные характеристики места
-     * - float $weight - Вес места, кг
-     * - float $volume - Объём места, м³
-     * - int $length - Длина места (в сантиметрах, если не задан volume)
-     * - int $width - Ширина места (в сантиметрах, если не задан volume)
-     * - int $height - Высота места (в сантиметрах, если не задан volume)
+     * @var Good[] Габаритные характеристики места
      */
     public $goods;
 
     /**
-     * @var array[] Список передаваемых дополнительных услуг
-     * - int $id - Идентификатор номера дополнительной услуги (CdekApi::SERVICE_TYPES)
-     * - int $param - Параметр дополнительной услуги, если необходимо
+     * @var ServiceParams[] Список передаваемых дополнительных услуг
      */
     public $services;
 
     /**
      * @inheritDoc
      */
-    public function attributeLabels()
+    public function attributeLabels() : array
     {
         return [
             'dateExecute' => 'Дата отправки',
@@ -158,9 +158,8 @@ class CalcRequest extends AbstractRequest
 
     /**
      * {@inheritDoc}
-     * @see \yii\base\Model::rules()
      */
-    public function rules()
+    public function rules() : array
     {
         return [
             ['dateExecute', 'default'],
@@ -187,56 +186,39 @@ class CalcRequest extends AbstractRequest
 
             [['senderLatitude', 'senderLongitude', 'receiverLatitude', 'receiverLongitude'], 'default'],
             [['senderLatitude', 'senderLongitude', 'receiverLatitude', 'receiverLongitude'], 'number',
-             'min' => 0.000001],
+                'min' => 0.000001],
             [['senderLatitude', 'senderLongitude', 'receiverLatitude', 'receiverLongitude'], 'filter',
-             'filter' => 'floatval', 'skipOnEmpty' => true],
+                'filter' => 'floatval', 'skipOnEmpty' => true],
 
             [['senderCityId', 'senderCityPostCode'], 'required',
-             'when' => static function(self $model, string $attribute) {
-                 return empty($attribute === 'senderCityId' ? $model->senderCityPostCode : $model->senderCityId);
-             }, 'skipOnEmpty' => false],
+                'when' => static function (self $model, string $attribute) : bool {
+                    return $attribute === 'senderCityId' ? empty($model->senderCityPostCode) :
+                        empty($model->senderCityId);
+                }, 'skipOnEmpty' => false],
 
             [['receiverCityId', 'receiverCityPostCode'], 'required',
-             'when' => static function(self $model, string $attribute) {
-                 return empty($attribute === 'receiverCityId' ? $model->receiverCityPostCode : $model->receiverCityId);
-             }, 'skipOnEmpty' => false],
+                'when' => static function (self $model, string $attribute) : bool {
+                    return $attribute === 'receiverCityId' ? empty($model->receiverCityPostCode) :
+                        empty($model->receiverCityId);
+                }, 'skipOnEmpty' => false],
 
             ['tariffId', 'default'],
             ['tariffId', 'in', 'range' => array_keys(CdekApi::TARIF_TYPES)],
             ['tariffId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['tariffList', 'default'],
-            ['tariffList', function($attribute) {
-                $list = [];
-
-                foreach (array_values((array)($this->{$attribute} ?: [])) as $i => $tarif) {
-                    if (is_numeric($tarif)) {
-                        $tarif = ['id' => (int)$tarif];
-                    } elseif (! is_array($tarif)) {
-                        $this->addError($attribute, 'Некорректный тип данных тарифа');
-
-                        return false;
+            ['tariffList', function () {
+                $this->tariffList = array_values($this->tariffList);
+                foreach ($this->tariffList as $i => &$tarif) {
+                    if ((is_array($tarif) || ($tarif instanceof ArrayAccess)) && ! isset($tarif['priority'])) {
+                        $tarif['priority'] = $i;
                     }
-
-                    $id = (int)($tarif['id'] ?? 0);
-                    $priority = isset($tarif['priority']) ? (int)$tarif['priority'] : $i;
-
-                    if (! array_key_exists($tarif['id'], CdekApi::TARIF_TYPES)) {
-                        $this->addError($attribute, 'Некорректный код тарифа: ' . $tarif['id']);
-
-                        return false;
-                    }
-
-                    $list[] = ['id' => $id, 'priority' => $priority];
                 }
+            }, 'skipOnEmpty' => true],
+            ['tariffList', EntityValidator::class],
 
-                $this->{$attribute} = $list ?: null;
-
-                return true;
-            }],
-
-            [['tariffId', 'tariffList'], 'required', 'when' => static function(self $model, $attribute) {
-                return empty($attribute === 'tariffId' ? $model->tariffList : $model->tariffId);
+            [['tariffId', 'tariffList'], 'required', 'when' => static function (self $model, $attribute) {
+                return $attribute === 'tariffId' ? empty($model->tariffList) : empty($model->tariffId);
             }, 'skipOnEmpty' => false],
 
             ['modeId', 'default'],
@@ -244,150 +226,61 @@ class CalcRequest extends AbstractRequest
             ['modeId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['goods', 'required'],
-            ['goods', function($attribute) {
-                $goods = [];
-
-                // проверяем параметры товаров посылки
-                foreach ((array)($this->{$attribute} ?: []) as $good) {
-                    $weight = (float)($good['weight'] ?? 0);
-                    $width = (int)($good['width'] ?? 0);
-                    $height = (int)($good['height'] ?? 0);
-                    $length = (int)($good['length'] ?? 0);
-                    $volume = (float)($good['volume'] ?? 0);
-
-                    if ($weight <= 0) {
-                        $this->addError($attribute, 'Некоректный вес товара');
-
-                        return false;
-                    }
-
-                    $good = ['weight' => $weight];
-
-                    if (! empty($width) && ! empty($height) && ! empty($length)) {
-                        if ($width < 0 || $height < 0 || $length < 0) {
-                            $this->addError($attribute, 'Некорректные размеры товара');
-
-                            return false;
-                        }
-
-                        $good['width'] = $width;
-                        $good['height'] = $height;
-                        $good['length'] = $length;
-                    } else {
-                        if ($volume < 0) {
-                            $this->addError($attribute, 'Некорректный объем посылки');
-
-                            return false;
-                        }
-
-                        if (empty($volume)) {
-                            $this->addError($attribute, 'Не заданы габариты посылки');
-                        }
-
-                        $good['volume'] = $volume;
-                    }
-
-                    $goods[] = $good;
-                }
-
-                if (empty($goods)) {
-                    $this->addError($attribute, 'Не заданы параметры товаров посылки');
-
-                    return false;
-                }
-
-                $this->{$attribute} = $goods;
-
-                return true;
-            }, 'skipOnEmpty' => false],
+            ['goods', EntityValidator::class],
 
             ['services', 'default'],
-            ['services', function($attribute) {
-                $services = [];
-
-                foreach ((array)($this->{$attribute} ?: []) as $service) {
-                    $id = (int)($service['id'] ?? 0);
-                    $param = (int)($service['param'] ?? 0);
-
-                    if ($id < 1) {
-                        $this->addError($attribute, 'Некорректный id сервиса');
-
-                        return false;
-                    }
-
-                    $service = ['id' => $id];
-                    if (! empty($param)) {
-                        $service['param'] = $param;
-                    }
-
-                    $services[] = $service;
-                }
-
-                $this->{$attribute} = $services ?: null;
-
-                return true;
-            }]
+            ['services', EntityValidator::class],
         ];
     }
 
     /**
-     * Возвращает параметры запроса.
-     *
-     * @return array
+     * @inheritDoc
      */
-    public function getParams()
+    public function attributeEntities() : array
     {
-        $params = $this->toArray();
-        $params['version'] = self::API_VERSION;
+        return [
+            'tariffList' => [Tariff::class],
+            'goods' => [Good::class],
+            'services' => [ServiceParams::class]
+        ];
+    }
 
-        if (! empty($this->api->login)) {
-            $params['authLogin'] = $this->api->login;
+    /**
+     * @inheritDoc
+     * @throws InvalidConfigException
+     */
+    protected function httpRequest() : Request
+    {
+        $date = date('Y-m-d');
 
-            if (empty($params['dateExecute'])) {
-                $params['dateExecute'] = date('Y-m-d');
-            }
-
-            $params['secure'] = md5($params['dateExecute'] . '&' . $this->api->password);
-        }
-
-        return array_filter($params, static function($param) {
-            return $param !== null && $param !== '' && $param !== [];
-        });
+        return $this->api->httpClient
+            ->createRequest()
+            ->setMethod('post')
+            ->setFullUrl(($this->api->debug ? CdekApi::URL_CALC_TEST : CdekApi::URL_CALC) . self::URL)
+            ->setData(array_merge($this->json, [
+                'version' => self::API_VERSION,
+                'authLogin' => $this->api->debug ? CdekApi::LOGIN_TEST : $this->api->login,
+                'dateExecute' => $date,
+                'secure' => md5($date . '&' . ($this->api->debug ? CdekApi::PASSWORD_TEST : $this->api->password))
+            ]))
+            ->setFormat(Client::FORMAT_JSON)
+            ->setHeaders([
+                'Accept' => 'application/json'
+            ]);
     }
 
     /**
      * Отправляет запрос и возвращает рассчет доставки.
      *
-     * @return \dicr\cdek\CalcResult
-     * @throws \yii\base\Exception
+     * @return CalcResult
+     * @throws Exception
      */
-    public function send()
+    public function send() : CalcResult
     {
-        if (! $this->validate()) {
-            throw new ValidateException($this);
-        }
+        $data = parent::send();
 
-        // отправляем запрос
-        $request = $this->api->post(self::REQUEST_URL, $this->params);
-        $request->format = Client::FORMAT_JSON;
-        $response = $request->send();
-        if (! $response->isOk) {
-            throw new Exception('Ошибка запроса: ' . $response->toString());
-        }
-
-        // декодируем ответ
-        $response->format = Client::FORMAT_JSON;
-        $json = $response->data;
-        if ($json === null || empty($json['result']) || ! empty($json['error'])) {
-            throw new Exception('Ошибка ответа: ' . $response->toString());
-        }
-
-        $result = new CalcResult($json['result']);
-
-        if (isset($this->api->filterCalc)) {
-            $result = ($this->api->filterCalc)($result, $this);
-        }
-
-        return $result;
+        return new CalcResult([
+            'json' => $data['result']
+        ]);
     }
 }

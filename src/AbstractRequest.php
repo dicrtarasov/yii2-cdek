@@ -1,67 +1,80 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 07.03.20 04:09:42
+ * @license MIT
+ * @version 06.12.20 07:47:25
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek;
 
+use dicr\validate\ValidateException;
 use InvalidArgumentException;
-use yii\base\Model;
+use Yii;
+use yii\base\Exception;
+use yii\httpclient\Client;
+use yii\httpclient\Request;
 
 /**
  * Базовый класс запросов.
- *
- * @property-read \dicr\cdek\CdekApi $api
  */
-abstract class AbstractRequest extends Model
+abstract class AbstractRequest extends AbstractEntity
 {
-    /** @var \dicr\cdek\CdekApi */
-    protected $_api;
+    /** @var CdekApi */
+    protected $api;
 
     /**
      * Конструктор.
      *
      * @param CdekApi $api
      * @param array $config
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function __construct(CdekApi $api, array $config = [])
     {
-        if ($api === null) {
-            throw new InvalidArgumentException('api');
-        }
-
-        $this->_api = $api;
+        $this->api = $api;
 
         parent::__construct($config);
     }
 
     /**
-     * Возвращает API.
+     * HTTP-запрос.
      *
-     * @return \dicr\cdek\CdekApi
+     * @return Request
      */
-    public function getApi()
-    {
-        return $this->_api;
-    }
-
-    /**
-     * Параметры запроса.
-     *
-     * @return array
-     */
-    abstract protected function getParams();
+    abstract protected function httpRequest() : Request;
 
     /**
      * Отправка запроса.
      *
-     * @return mixed
-     * @throws \dicr\validate\ValidateException
+     * @return array данные ответа (переопределяется)
+     * @throws Exception
+     * @noinspection PhpMissingReturnTypeInspection, ReturnTypeCanBeDeclaredInspection
      */
-    abstract public function send();
+    public function send()
+    {
+        if (! $this->validate()) {
+            throw new ValidateException($this);
+        }
+
+        $request = $this->httpRequest();
+        Yii::debug('Запрос: ' . $request->toString());
+
+        $response = $request->send();
+        Yii::debug('Ответ: ' . $response->toString());
+
+        if (! $response->isOk) {
+            throw new Exception('HTTP-error: ' . $response->statusCode);
+        }
+
+        $response->format = Client::FORMAT_JSON;
+        if (! empty($response->data['error'])) {
+            throw new Exception(
+                'Ошибка запроса: ' . ($response->data['error']['text'] ?? $response->data['error'][0]['text'])
+            );
+        }
+
+        return $response->data;
+    }
 }

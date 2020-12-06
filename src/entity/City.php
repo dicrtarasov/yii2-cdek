@@ -1,16 +1,16 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 27.02.20 00:22:14
+ * @license MIT
+ * @version 06.12.20 05:20:07
  */
 
 declare(strict_types = 1);
 
-namespace dicr\cdek;
+namespace dicr\cdek\entity;
 
-use yii\base\BaseObject;
+use dicr\cdek\AbstractEntity;
 
 /**
  * Город СДЭК.
@@ -18,7 +18,7 @@ use yii\base\BaseObject;
  * @package dicr\cdek
  * @see https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129#id-%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%BE%D0%B1%D0%BC%D0%B5%D0%BD%D0%B0%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%BC%D0%B8(v1.5)-4.12.Region%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA%D1%80%D0%B5%D0%B3%D0%B8%D0%BE%D0%BD%D0%BE%D0%B2
  */
-class City extends BaseObject
+class City extends AbstractEntity
 {
     /** @var string UUID Идентификатор сущности в ИС СДЭК */
     public $cityUuid;

@@ -1,9 +1,9 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 28.02.20 03:59:08
+ * @license MIT
+ * @version 06.12.20 07:49:42
  */
 
 declare(strict_types = 1);
@@ -12,6 +12,9 @@ namespace dicr\tests;
 
 use dicr\cdek\CdekApi;
 use dicr\helper\ArrayHelper;
+use yii\base\Exception;
+use yii\base\InvalidConfigException;
+
 use function array_keys;
 
 /**
@@ -22,10 +25,10 @@ class CalcRequestTest extends AbstractTest
     /**
      * Тестовый запрос
      *
-     * @throws \yii\base\InvalidConfigException
-     * @throws \yii\base\Exception
+     * @throws InvalidConfigException
+     * @throws Exception
      */
-    public function test()
+    public function test() : void
     {
         $TEST_REQUEST = [
             'senderCityPostCode' => 614087, // Пермь
@@ -37,17 +40,17 @@ class CalcRequestTest extends AbstractTest
                 ['id' => CdekApi::TARIF_ECOPOST_S_S]
             ],
             'goods' => [
-                ['weight' => 0.24, 'volume' => 0.001]
+                ['weight' => 0.24, 'width' => 10, 'height' => 5, 'length' => 20]
             ]
         ];
 
         $TEST_RESULT = [
-            'price' => 210,
+            'price' => '252',
             'deliveryPeriodMin' => 2,
-            'deliveryPeriodMax' => 4,
+            'deliveryPeriodMax' => 3,
         ];
 
-        $result = self::api()->createCalcRequest($TEST_REQUEST)->send();
+        $result = self::api()->calcRequest($TEST_REQUEST)->send();
 
         self::assertEquals($TEST_RESULT, ArrayHelper::filter((array)$result, array_keys($TEST_RESULT)));
     }

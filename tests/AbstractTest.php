@@ -1,17 +1,19 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 28.02.20 02:35:55
+ * @license MIT
+ * @version 06.12.20 00:02:45
  */
 
 declare(strict_types = 1);
 
 namespace dicr\tests;
 
+use dicr\cdek\CdekApi;
 use PHPUnit\Framework\TestCase;
 use Yii;
+use yii\base\InvalidConfigException;
 
 /**
  * Базовый класс для тестов.
@@ -21,12 +23,11 @@ abstract class AbstractTest extends TestCase
     /**
      * Возвращает тестовое хранилище.
      *
-     * @return \dicr\cdek\CdekApi
-     * @throws \yii\base\InvalidConfigException
+     * @return CdekApi
+     * @throws InvalidConfigException
      */
-    protected static function api()
+    protected static function api() : CdekApi
     {
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return Yii::$app->get('api');
     }
 }

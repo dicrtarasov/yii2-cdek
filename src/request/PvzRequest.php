@@ -1,19 +1,22 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 07.03.20 04:09:42
+ * @license MIT
+ * @version 06.12.20 07:49:46
  */
 
 declare(strict_types = 1);
-namespace dicr\cdek;
+namespace dicr\cdek\request;
 
-use dicr\validate\ValidateException;
+use dicr\cdek\AbstractRequest;
+use dicr\cdek\entity\Pvz;
 use yii\base\Exception;
-use yii\httpclient\Client;
-use function array_filter;
+use yii\httpclient\Request;
+
 use function array_keys;
+use function array_map;
+use function array_merge;
 
 /**
  * Запрос списка ПВЗ (пунктов самовывоза).
@@ -23,10 +26,10 @@ use function array_keys;
 class PvzRequest extends AbstractRequest
 {
     /** @var string URL запроса для JSON-ответа */
-    public const REQUEST_JSON = '/pvzlist/v1/json';
+    public const URL_JSON = '/pvzlist/v1/json';
 
     /** @var string URL запроса для XML-ответа */
-    public const REQUEST_XML = '/pvzlist/v1/xml';
+    public const URL_XML = '/pvzlist/v1/xml';
 
     /** @var int|null почтовый индекс города (если не задан id) */
     public $citypostcode;
@@ -74,7 +77,7 @@ class PvzRequest extends AbstractRequest
     /**
      * {@inheritDoc}
      */
-    public function attributeLabels()
+    public function attributeLabels() : array
     {
         return [
             'citypostcode' => 'Почтовый индекс',
@@ -96,7 +99,7 @@ class PvzRequest extends AbstractRequest
     /**
      * {@inheritDoc}
      */
-    public function rules()
+    public function rules() : array
     {
         return [
             ['citypostcode', 'default'],
@@ -116,7 +119,7 @@ class PvzRequest extends AbstractRequest
             [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'default'],
             [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'boolean'],
             [['havecashless', 'allowedcod', 'isdressingroom', 'takeonly'], 'filter', 'filter' => 'boolval',
-             'skipOnEmpty' => true],
+                'skipOnEmpty' => true],
 
             [['weightmax', 'weightmin'], 'default'],
             [['weightmax', 'weightmin'], 'integer', 'min' => 0],
@@ -128,52 +131,29 @@ class PvzRequest extends AbstractRequest
     }
 
     /**
-     * Параметры запроса.
-     *
-     * @return array
+     * @inheritDoc
      */
-    public function getParams()
+    protected function httpRequest() : Request
     {
-        return array_filter($this->toArray(), static function($param) {
-            return $param !== null && $param !== '' && $param !== [];
-        });
+        return $this->api->httpClient->get(array_merge($this->json, [
+            0 => self::URL_JSON
+        ]), null, [
+            'Accept' => 'application/json'
+        ]);
     }
 
     /**
-     * Возвращает список ПВЗ.
+     * Отправляет запрос и возвращает список регионов.
      *
-     * @return \dicr\cdek\Pvz[] список ПВЗ
-     * @throws \yii\base\Exception
+     * @return Pvz[]
+     * @throws Exception
      */
-    public function send()
+    public function send() : array
     {
-        if (! $this->validate()) {
-            throw new ValidateException($this);
-        }
-
-        // делаем запрос к API
-        $request = $this->api->get(self::REQUEST_JSON, $this->params);
-        $response = $request->send();
-        if (! $response->isOk) {
-            throw new Exception('Ошибка запроса: ' . $response->toString());
-        }
-
-        // декодируем ответ
-        $response->format = Client::FORMAT_JSON;
-        $json = $response->data;
-        if ($json === null || ! isset($json['pvz'])) {
-            throw new Exception('Некорректный ответ: ' . $response->toString());
-        }
-
-        return array_filter(array_map(function(array $config) {
-            $pvz = new Pvz($config);
-
-            // пользовательский фильтр
-            if (isset($this->api->filterPvz)) {
-                $pvz = ($this->api->filterPvz)($pvz, $this);
-            }
-
-            return $pvz;
-        }, $json['pvz']));
+        return array_map(static function (array $json) : Pvz {
+            return new Pvz([
+                'json' => $json
+            ]);
+        }, parent::send());
     }
 }

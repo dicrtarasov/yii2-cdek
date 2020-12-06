@@ -1,4 +1,5 @@
 # API службы доставки СДЭК для Yii2
+
 Реализация JSON-протокола обмена данными СДЭК версии 1.5
 
 Чтобы минимизировать число обращений к серверу СДЭК, запросы выполняются с кэшированием,
@@ -14,7 +15,7 @@ return [
         'cdek' => [
             'class' => dicr\cdek\CdekApi::class,
             // для тестирования используем тестовые url, логин и пароль
-            'baseUrl' => dicr\cdek\CdekApi::URL_TEST,
+            'baseUrl' => dicr\cdek\CdekApi::URL_INTEGRATION_TEST,
             'login' => dicr\cdek\CdekApi::LOGIN_TEST,
             'password' => dicr\cdek\CdekApi::PASSWORD_TEST,
             // конфиг запроса стоимости доставки по-умолчанию
@@ -37,36 +38,35 @@ return [
 ## Запросы к API
 
 ```php
-use dicr\cdek\CdekApi;
-
-/** @var CdekApi $api */
-$api = Yii::$app->cdek;
+/** @var dicr\cdek\CdekApi $api */
+$api = Yii::$app->get('cdek');
 
 // запрос списка регионов
-$regions = $api->createRegionRequest()->send();
+$regions = $api->regionRequest()->send();
 
 // запрос списка городов
-$cities = $api->createCityRequest([
+$cities = $api->cityRequest([
     'countryCode' => 'ru'
 ])->send();
 
 // запрос списка пунктов самовывоза
-$pvz = $api->createCityRequest([
+$pvz = $api->cityRequest([
     'citypostcode' => 614087
 ])->send();
 
 // рассчет стоимости доставки (город отправителя исписок тарифов заданы в конфиге компонента)
-$result = $api->createCalcRequest([
+$result = $api->calcRequest([
     // город получателя можно либо код СДЭК, либо индекс в `receiverCityPostCode`
     'receiverCityId' => 44, // Москва,
      // из списка настроенных тарифов выбираем тарифы с доставкой от склада до двери
-    'modeId' => CdekApi::DELIVERY_SKLAD_DOOR, 
+    'modeId' => dicr\cdek\CdekApi::DELIVERY_SKLAD_DOOR, 
     // характеристики посылок (у нас всего одна) 
     'goods' => [
         ['weight' => 0.24, 'volume' => 0.001]
     ]
 ])->send();
 ```
+
 Пример настройки и запросов можно посмотреть в тестах `phpunits` (папка `tests`).
 
 Детальная документация по параметрам запроса - в [базе знаний СДЭК](https://confluence.cdek.ru/display/documentation).

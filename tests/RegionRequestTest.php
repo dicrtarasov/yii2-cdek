@@ -1,13 +1,16 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 28.02.20 02:33:32
+ * @license MIT
+ * @version 06.12.20 02:12:13
  */
 
 declare(strict_types = 1);
 namespace dicr\tests;
+
+use yii\base\Exception;
+use yii\base\InvalidConfigException;
 
 /**
  * RegionRequest Test.
@@ -15,12 +18,12 @@ namespace dicr\tests;
 class RegionRequestTest extends AbstractTest
 {
     /**
-     * @throws \yii\base\Exception
-     * @throws \yii\base\InvalidConfigException
+     * @throws Exception
+     * @throws InvalidConfigException
      */
-    public function test()
+    public function test() : void
     {
-        $result = self::api()->createRegionRequest()->send();
+        $result = self::api()->regionRequest()->send();
         self::assertIsArray($result);
         self::assertNotEmpty($result);
     }

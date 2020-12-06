@@ -1,17 +1,20 @@
 <?php
-/**
+/*
  * @copyright 2019-2020 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
- * @license proprietary
- * @version 07.03.20 04:09:42
+ * @license MIT
+ * @version 06.12.20 07:49:46
  */
 
 declare(strict_types = 1);
-namespace dicr\cdek;
+namespace dicr\cdek\request;
 
-use dicr\validate\ValidateException;
+use dicr\cdek\AbstractRequest;
+use dicr\cdek\entity\Region;
 use yii\base\Exception;
-use yii\httpclient\Client;
+use yii\httpclient\Request;
+
+use function array_merge;
 
 /**
  * Запрос информации о регионах.
@@ -53,7 +56,7 @@ class RegionRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    public function attributeLabels()
+    public function attributeLabels() : array
     {
         return [
             'regionCodeExt' => 'Код региона',
@@ -70,7 +73,7 @@ class RegionRequest extends AbstractRequest
     /**
      * {@inheritDoc}
      */
-    public function rules()
+    public function rules() : array
     {
         return [
             ['regionCodeExt', 'trim'],
@@ -104,51 +107,29 @@ class RegionRequest extends AbstractRequest
     }
 
     /**
-     * Даные для запроса.
-     *
-     * @return array
+     * @inheritDoc
      */
-    public function getParams()
+    protected function httpRequest() : Request
     {
-        return array_filter($this->toArray(), static function($param) {
-            return $param !== null && $param !== '' && $param !== [];
-        });
+        return $this->api->httpClient->get(array_merge($this->json, [
+            0 => self::URL_JSON
+        ]), null, [
+            'Accept' => 'application/json'
+        ]);
     }
 
     /**
      * Отправляет запрос и возвращает список регионов.
      *
-     * @return \dicr\cdek\Region[]
+     * @return Region[]
      * @throws Exception
      */
-    public function send()
+    public function send() : array
     {
-        if (! $this->validate()) {
-            throw new ValidateException($this);
-        }
-
-        // отправляем запрос
-        $request = $this->api->get(self::URL_JSON, $this->params);
-        $response = $request->send();
-        if (! $response->isOk) {
-            throw new Exception('Ошибка запроса: ' . $response->toString());
-        }
-
-        // декодируем ответ
-        $response->format = Client::FORMAT_JSON;
-        $json = $response->data;
-        if ($json === null) {
-            throw new Exception('Некорректный ответ: ' . $response->toString());
-        }
-
-        return array_filter(array_map(function($config) {
-            $region = new Region($config);
-
-            if (isset($this->api->filterRegion)) {
-                $region = ($this->api->filterRegion)($region, $this);
-            }
-
-            return $region;
-        }, $json));
+        return array_map(static function (array $json) : Region {
+            return new Region([
+                'json' => $json
+            ]);
+        }, parent::send());
     }
 }

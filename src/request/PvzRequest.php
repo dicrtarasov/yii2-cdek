@@ -150,10 +150,12 @@ class PvzRequest extends AbstractRequest
      */
     public function send() : array
     {
+        $data = parent::send();
+
         return array_map(static function (array $json) : Pvz {
             return new Pvz([
                 'json' => $json
             ]);
-        }, parent::send());
+        }, $data['pvz'] ?? []);
     }
 }

@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:17:12
+ * @version 02.02.21 05:48:40
  */
 
 declare(strict_types = 1);
@@ -44,7 +44,7 @@ interface Cdek
     /** @var int размер страницы по-умолчанию */
     public const SIZE_DEFAULT = 1000;
 
-    /** @var int достака курьером от дверей до дверей */
+    /** @var int доставка курьером от дверей до дверей */
     public const DELIVERY_DOOR_DOOR = 1;
 
     /** @var int доставка от дверей до склада */
@@ -100,7 +100,7 @@ interface Cdek
     /** @var string[] дополнительные услуги */
     public const SERVICE_TYPES = [
         self::SERVICE_INSURANCE => 'страхование посылки',
-        self::SERVICE_DANGER => 'достава опасных грузов',
+        self::SERVICE_DANGER => 'доставка опасных грузов',
         self::SERVICE_FETCH_SENDER => 'забор в городе отправителя',
         self::SERVICE_FETCH_RECEIVER => 'доставка по городу получателя',
         self::SERVICE_PACKING1 => 'коробка 310x215x280мм до 10кг',
@@ -172,7 +172,7 @@ interface Cdek
     /** @var int Экспресс тяжеловесы склад-дверь */
     public const TARIF_ECOHARD_S_D = 16;
 
-    /** @var int Экспресс тяеловесы дверь-склад */
+    /** @var int Экспресс тяжеловесы дверь-склад */
     public const TARIF_ECOHARD_D_S = 17;
 
     /** @var int Экспресс тяжеловесы дверь-дверь */
@@ -251,13 +251,13 @@ interface Cdek
     /** @var string для отображения только складов СДЭК */
     public const TYPE_PVZ = 'PVZ';
 
-    /** @var string для отображения постоматов партнёра */
+    /** @var string для отображения постаматов партнёра */
     public const TYPE_POSTOMAT = 'POSTOMAT';
 
     /** @var string[] типы ПВЗ */
     public const TYPES = [
         self::TYPE_PVZ => 'Склад СДЭК',
-        self::TYPE_POSTOMAT => 'Постомат партнера'
+        self::TYPE_POSTOMAT => 'Постамат партнера'
     ];
 
     /** @var string ПВЗ принадлежит компании СДЭК */

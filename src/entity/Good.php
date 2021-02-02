@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:57:47
+ * @version 02.02.21 05:49:36
  */
 
 declare(strict_types = 1);
@@ -46,9 +46,7 @@ class Good extends AbstractEntity
             ['volume', 'filter', 'filter' => 'floatval', 'skipOnEmpty' => true],
 
             [['length', 'width', 'height'], 'default'],
-            [['length', 'width', 'height'], 'required', 'when' => function () : bool {
-                return empty($this->volume);
-            }],
+            [['length', 'width', 'height'], 'required', 'when' => fn(): bool => empty($this->volume)],
             [['length', 'width', 'height'], 'integer', 'min' => 1],
             [['length', 'width', 'height'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
         ];

@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:49:46
+ * @version 02.02.21 05:49:36
  */
 
 declare(strict_types = 1);
@@ -150,10 +150,8 @@ class PvzRequest extends AbstractRequest
      */
     public function send() : array
     {
-        return array_map(static function (array $json) : Pvz {
-            return new Pvz([
-                'json' => $json
-            ]);
-        }, parent::send());
+        return array_map(static fn(array $json): Pvz => new Pvz([
+            'json' => $json
+        ]), parent::send());
     }
 }

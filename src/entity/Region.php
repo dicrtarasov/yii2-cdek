@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 05:20:07
+ * @version 02.02.21 05:47:54
  */
 
 declare(strict_types = 1);
@@ -22,7 +22,7 @@ class Region extends AbstractEntity
     /** @var string (255) Название региона */
     public $regionName;
 
-    /** @var ?string (20) Префикс (возможные значения: обл, край, респ, АО, Аобл, г) */
+    /** @var ?string (20) Префикс (возможные значения: обл, край, респ, АО, обл, г) */
     public $prefix;
 
     /** @var ?int Код региона */

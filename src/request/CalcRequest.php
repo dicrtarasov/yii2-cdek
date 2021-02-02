@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:48:14
+ * @version 02.02.21 05:44:21
  */
 
 declare(strict_types = 1);
@@ -28,7 +28,7 @@ use function is_array;
 use function md5;
 
 /**
- * Запрос рассчета доставки.
+ * Запрос расчета доставки.
  *
  * При использовании тарифов для обычной доставки авторизация не обязательна и параметры authLogin и secure можно не
  * передавать.
@@ -133,7 +133,7 @@ class CalcRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    public function attributeLabels() : array
+    public function attributeLabels(): array
     {
         return [
             'dateExecute' => 'Дата отправки',
@@ -159,7 +159,7 @@ class CalcRequest extends AbstractRequest
     /**
      * {@inheritDoc}
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['dateExecute', 'default'],
@@ -191,23 +191,23 @@ class CalcRequest extends AbstractRequest
                 'filter' => 'floatval', 'skipOnEmpty' => true],
 
             [['senderCityId', 'senderCityPostCode'], 'required',
-                'when' => static function (self $model, string $attribute) : bool {
-                    return $attribute === 'senderCityId' ? empty($model->senderCityPostCode) :
-                        empty($model->senderCityId);
-                }, 'skipOnEmpty' => false],
+                'when' => static fn(self $model, string $attribute): bool => $attribute === 'senderCityId' ?
+                    empty($model->senderCityPostCode) :
+                    empty($model->senderCityId),
+                'skipOnEmpty' => false],
 
             [['receiverCityId', 'receiverCityPostCode'], 'required',
-                'when' => static function (self $model, string $attribute) : bool {
-                    return $attribute === 'receiverCityId' ? empty($model->receiverCityPostCode) :
-                        empty($model->receiverCityId);
-                }, 'skipOnEmpty' => false],
+                'when' => static fn(self $model, string $attribute): bool => $attribute === 'receiverCityId' ?
+                    empty($model->receiverCityPostCode) :
+                    empty($model->receiverCityId),
+                'skipOnEmpty' => false],
 
             ['tariffId', 'default'],
             ['tariffId', 'in', 'range' => array_keys(CdekApi::TARIF_TYPES)],
             ['tariffId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['tariffList', 'default'],
-            ['tariffList', function () {
+            ['tariffList', function() {
                 $this->tariffList = array_values($this->tariffList);
                 foreach ($this->tariffList as $i => &$tarif) {
                     if ((is_array($tarif) || ($tarif instanceof ArrayAccess)) && ! isset($tarif['priority'])) {
@@ -217,9 +217,10 @@ class CalcRequest extends AbstractRequest
             }, 'skipOnEmpty' => true],
             ['tariffList', EntityValidator::class],
 
-            [['tariffId', 'tariffList'], 'required', 'when' => static function (self $model, $attribute) {
-                return $attribute === 'tariffId' ? empty($model->tariffList) : empty($model->tariffId);
-            }, 'skipOnEmpty' => false],
+            [['tariffId', 'tariffList'], 'required',
+                'when' => static fn(self $model, $attribute) => $attribute === 'tariffId' ? empty($model->tariffList) :
+                    empty($model->tariffId),
+                'skipOnEmpty' => false],
 
             ['modeId', 'default'],
             ['modeId', 'in', 'range' => array_keys(CdekApi::DELIVERY_TYPES)],
@@ -236,7 +237,7 @@ class CalcRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    public function attributeEntities() : array
+    public function attributeEntities(): array
     {
         return [
             'tariffList' => [Tariff::class],
@@ -249,7 +250,7 @@ class CalcRequest extends AbstractRequest
      * @inheritDoc
      * @throws InvalidConfigException
      */
-    protected function httpRequest() : Request
+    protected function httpRequest(): Request
     {
         $date = date('Y-m-d');
 
@@ -270,12 +271,12 @@ class CalcRequest extends AbstractRequest
     }
 
     /**
-     * Отправляет запрос и возвращает рассчет доставки.
+     * Отправляет запрос и возвращает расчет доставки.
      *
      * @return CalcResult
      * @throws Exception
      */
-    public function send() : CalcResult
+    public function send(): CalcResult
     {
         $data = parent::send();
 

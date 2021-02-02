@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:48:14
+ * @version 02.02.21 05:48:49
  */
 
 declare(strict_types = 1);
@@ -46,10 +46,10 @@ class CdekApi extends Component implements Cdek
      * @link CalcRequest
      */
     public $calcRequestConfig = [
-        // senderCityId => код города отпарвителя по-умолчанию
+        // senderCityId => код города отправителя по-умолчанию
         // senderCityPostCode => индекс отправителя по-умолчанию
-        // tariffId => тариф для рассчета по-умолчанию
-        // tariffList => список тарифов для рассчета по-умолчанию
+        // tariffId => тариф для расчета по-умолчанию
+        // tariffList => список тарифов для расчета по-умолчанию
         // services => список включенных сервисов по-умолчанию
         // weight => вес посылки по-умолчанию
         // volume => объем посылки по-умолчанию
@@ -133,7 +133,7 @@ class CdekApi extends Component implements Cdek
     }
 
     /**
-     * Возвращает запрос рассчета доставки.
+     * Возвращает запрос расчета доставки.
      *
      * @param array $config
      * @return CalcRequest

@@ -3,7 +3,7 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 17:13:44
+ * @version 19.04.21 23:43:55
  */
 
 declare(strict_types = 1);
@@ -183,7 +183,7 @@ class CdekApi extends Component implements Cdek
      */
     public function calcRequest(array $config = []): CalcRequest
     {
-        return $this->request(array_merge($config, [
+        return $this->request(array_merge($this->calcRequestConfig ?: [], $config, [
             'class' => CalcRequest::class
         ]));
     }

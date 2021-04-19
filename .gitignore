@@ -1,4 +1,4 @@
+/runtime/
 /vendor/
 *.phar
 .phpunit.result.cache
-/runtime/

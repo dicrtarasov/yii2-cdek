@@ -3,21 +3,21 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:45:59
+ * @version 19.04.21 14:31:16
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\request;
 
+use dicr\cdek\CdekResponse;
 use dicr\cdek\entity\Service;
-use dicr\json\JsonEntity;
 
 /**
  * Результат расчета стоимости доставки.
  *
  * @see https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129#id-%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%BE%D0%B1%D0%BC%D0%B5%D0%BD%D0%B0%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%BC%D0%B8(v1.5)-4.14.1.2.%D0%A4%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%BE%D1%82%D0%B2%D0%B5%D1%82%D0%B0
  */
-class CalcResult extends JsonEntity
+class CalcResult extends CdekResponse
 {
     /** @var float Сумма за доставку в рублях */
     public $price;
@@ -58,7 +58,7 @@ class CalcResult extends JsonEntity
     /**
      * @inheritDoc
      */
-    public function attributeEntities() : array
+    public function attributeEntities(): array
     {
         return [
             'services' => [Service::class]

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ @copyright 2019-2020 Dicr http://dicr.org
+  ~ @copyright 2019-2021 Dicr http://dicr.org
   ~ @author Igor A Tarasov <develop@dicr.org>
   ~ @license MIT
-  ~ @version 06.12.20 07:49:46
+  ~ @version 19.04.21 14:54:09
   -->
 
 <phpunit
@@ -15,9 +15,6 @@
     <testsuites>
         <testsuite name="Dicr Test Suite">
             <directory>./tests</directory>
-            <!-- file>tests/RegionRequestTest.php</file-->
-            <!-- file>tests/SftpFileStoreTest.php</file-->
-            <!-- file>tests/FtpFileStoreTest.php</file-->
         </testsuite>
     </testsuites>
 </phpunit>

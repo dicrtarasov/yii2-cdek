@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 05:20:07
+ * @version 19.04.21 14:31:44
  */
 
 declare(strict_types = 1);
@@ -12,14 +12,14 @@ namespace dicr\cdek;
 use dicr\json\JsonEntity;
 
 /**
- * Class AbstractEntity
+ * Class Entity
  */
-abstract class AbstractEntity extends JsonEntity
+abstract class CdekEntity extends JsonEntity
 {
     /**
      * @inheritDoc
      */
-    public function attributeFields() : array
+    public function attributeFields(): array
     {
         // отключаем преобразования по-умолчанию
         return [];

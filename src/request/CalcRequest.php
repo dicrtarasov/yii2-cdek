@@ -3,23 +3,19 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:44:21
+ * @version 19.04.21 15:25:40
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\request;
 
 use ArrayAccess;
-use dicr\cdek\AbstractRequest;
 use dicr\cdek\CdekApi;
+use dicr\cdek\CdekRequest;
 use dicr\cdek\entity\Good;
 use dicr\cdek\entity\ServiceParams;
 use dicr\cdek\entity\Tariff;
 use dicr\json\EntityValidator;
-use yii\base\Exception;
-use yii\base\InvalidConfigException;
-use yii\httpclient\Client;
-use yii\httpclient\Request;
 
 use function array_merge;
 use function array_values;
@@ -56,7 +52,7 @@ use function md5;
  *
  * @link https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129#id-%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%BE%D0%B1%D0%BC%D0%B5%D0%BD%D0%B0%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%BC%D0%B8(v1.5)-4.14.2.%D0%A0%D0%B0%D1%81%D1%87%D0%B5%D1%82%D1%81%D1%82%D0%BE%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%D0%BF%D0%BE%D1%82%D0%B0%D1%80%D0%B8%D1%84%D0%B0%D0%BC%D0%B1%D0%B5%D0%B7%D0%BF%D1%80%D0%B8%D0%BE%D1%80%D0%B8%D1%82%D0%B5%D1%82%D0%B0
  */
-class CalcRequest extends AbstractRequest
+class CalcRequest extends CdekRequest
 {
     /** @var string API version */
     public const API_VERSION = '1.0';
@@ -248,33 +244,39 @@ class CalcRequest extends AbstractRequest
 
     /**
      * @inheritDoc
-     * @throws InvalidConfigException
      */
-    protected function httpRequest(): Request
+    protected function method(): string
     {
-        $date = date('Y-m-d');
-
-        return $this->api->httpClient
-            ->createRequest()
-            ->setMethod('post')
-            ->setFullUrl(($this->api->debug ? CdekApi::URL_CALC_TEST : CdekApi::URL_CALC) . self::URL)
-            ->setData(array_merge($this->json, [
-                'version' => self::API_VERSION,
-                'authLogin' => $this->api->debug ? CdekApi::LOGIN_TEST : $this->api->login,
-                'dateExecute' => $date,
-                'secure' => md5($date . '&' . ($this->api->debug ? CdekApi::PASSWORD_TEST : $this->api->password))
-            ]))
-            ->setFormat(Client::FORMAT_JSON)
-            ->setHeaders([
-                'Accept' => 'application/json'
-            ]);
+        return 'POST';
     }
 
     /**
-     * Отправляет запрос и возвращает расчет доставки.
+     * @inheritDoc
+     */
+    protected function url(): string
+    {
+        return ($this->api->debug ? CdekApi::URL_CALC_TEST : CdekApi::URL_CALC) . self::URL;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function data(): array
+    {
+        $date = date('Y-m-d');
+
+        return array_merge($this->json, [
+            'version' => self::API_VERSION,
+            'authLogin' => $this->api->debug ? CdekApi::LOGIN_TEST : $this->api->login,
+            'dateExecute' => $date,
+            'secure' => md5($date . '&' . ($this->api->debug ? CdekApi::PASSWORD_TEST : $this->api->password))
+        ]);
+    }
+
+    /**
+     * {@inheritDoc}
      *
      * @return CalcResult
-     * @throws Exception
      */
     public function send(): CalcResult
     {

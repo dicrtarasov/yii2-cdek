@@ -3,27 +3,24 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:51:59
+ * @version 19.04.21 14:29:07
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\request;
 
-use dicr\cdek\AbstractRequest;
+use dicr\cdek\CdekRequest;
 use dicr\cdek\entity\Pvz;
-use yii\base\Exception;
-use yii\httpclient\Request;
 
 use function array_keys;
 use function array_map;
-use function array_merge;
 
 /**
  * Запрос списка ПВЗ (пунктов самовывоза).
  *
  * @property-read array $params данные для отправки
  */
-class PvzRequest extends AbstractRequest
+class PvzRequest extends CdekRequest
 {
     /** @var string URL запроса для JSON-ответа */
     public const URL_JSON = '/pvzlist/v1/json';
@@ -77,7 +74,7 @@ class PvzRequest extends AbstractRequest
     /**
      * {@inheritDoc}
      */
-    public function attributeLabels() : array
+    public function attributeLabels(): array
     {
         return [
             'citypostcode' => 'Почтовый индекс',
@@ -99,7 +96,7 @@ class PvzRequest extends AbstractRequest
     /**
      * {@inheritDoc}
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['citypostcode', 'default'],
@@ -133,22 +130,25 @@ class PvzRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    protected function httpRequest() : Request
+    protected function method(): string
     {
-        return $this->api->httpClient->get(array_merge($this->json, [
-            0 => self::URL_JSON
-        ]), null, [
-            'Accept' => 'application/json'
-        ]);
+        return 'GET';
     }
 
     /**
-     * Отправляет запрос и возвращает список регионов.
+     * @inheritDoc
+     */
+    protected function url(): array
+    {
+        return [self::URL_JSON] + $this->json;
+    }
+
+    /**
+     * {@inheritDoc}
      *
      * @return Pvz[]
-     * @throws Exception
      */
-    public function send() : array
+    public function send(): array
     {
         $data = parent::send();
 

@@ -1,20 +1,20 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 05:20:07
+ * @version 19.04.21 14:31:44
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\entity;
 
-use dicr\cdek\AbstractEntity;
+use dicr\cdek\CdekEntity;
 
 /**
  * График работы на неделю.
  */
-class WorkTimeY extends AbstractEntity
+class WorkTimeY extends CdekEntity
 {
     /** @var int Порядковый номер дня начиная с единицы. Понедельник = 1, воскресенье = 7 */
     public $day;

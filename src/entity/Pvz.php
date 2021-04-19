@@ -1,16 +1,16 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 05:20:07
+ * @version 19.04.21 15:25:40
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\entity;
 
-use dicr\cdek\AbstractEntity;
 use dicr\cdek\Cdek;
+use dicr\cdek\CdekEntity;
 use dicr\json\EntityValidator;
 
 use function array_keys;
@@ -20,7 +20,7 @@ use function array_keys;
  *
  * @link https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129#id-%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%BE%D0%B1%D0%BC%D0%B5%D0%BD%D0%B0%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%BC%D0%B8(v1.5)-4.1.PVZ%D0%9F%D0%BE%D0%BB%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D0%B5%D1%81%D0%BF%D0%B8%D1%81%D0%BA%D0%B0%D0%9F%D0%92%D0%97
  */
-class Pvz extends AbstractEntity implements Cdek
+class Pvz extends CdekEntity implements Cdek
 {
     /** @var string (10) код ПВЗ */
     public $code;

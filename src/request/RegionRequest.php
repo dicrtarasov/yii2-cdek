@@ -3,25 +3,21 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:49:36
+ * @version 19.04.21 14:51:26
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\request;
 
-use dicr\cdek\AbstractRequest;
+use dicr\cdek\CdekRequest;
 use dicr\cdek\entity\Region;
-use yii\base\Exception;
-use yii\httpclient\Request;
-
-use function array_merge;
 
 /**
  * Запрос информации о регионах.
  *
  * @property-read array $params данные для запроса
  */
-class RegionRequest extends AbstractRequest
+class RegionRequest extends CdekRequest
 {
     /** @var string URL для получения ответа в XML */
     public const URL_XML = '/v1/location/regions';
@@ -56,7 +52,7 @@ class RegionRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    public function attributeLabels() : array
+    public function attributeLabels(): array
     {
         return [
             'regionCodeExt' => 'Код региона',
@@ -71,9 +67,9 @@ class RegionRequest extends AbstractRequest
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['regionCodeExt', 'trim'],
@@ -109,22 +105,25 @@ class RegionRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    protected function httpRequest() : Request
+    protected function method(): string
     {
-        return $this->api->httpClient->get(array_merge($this->json, [
-            0 => self::URL_JSON
-        ]), null, [
-            'Accept' => 'application/json'
-        ]);
+        return 'GET';
     }
 
     /**
-     * Отправляет запрос и возвращает список регионов.
+     * @inheritDoc
+     */
+    protected function url(): array
+    {
+        return [self::URL_JSON] + $this->json;
+    }
+
+    /**
+     * {@inheritDoc}
      *
      * @return Region[]
-     * @throws Exception
      */
-    public function send() : array
+    public function send(): array
     {
         return array_map(static fn(array $json): Region => new Region([
             'json' => $json

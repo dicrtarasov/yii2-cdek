@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:26:59
+ * @version 19.04.21 15:25:40
  */
 
 /** @noinspection PhpUnhandledExceptionInspection, PhpUnused */
@@ -18,10 +18,10 @@ error_reporting(-1);
 ini_set('display_errors', '1');
 
 /** */
-define('YII_ENABLE_ERROR_HANDLER', false);
+const YII_ENABLE_ERROR_HANDLER = false;
 
 /** */
-define('YII_DEBUG', true);
+const YII_DEBUG = true;
 
 /** */
 define('VENDOR', dirname(__DIR__) . '/vendor');

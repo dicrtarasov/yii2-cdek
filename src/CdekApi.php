@@ -3,7 +3,7 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:48:49
+ * @version 19.04.21 14:29:07
  */
 
 declare(strict_types = 1);
@@ -14,16 +14,21 @@ use dicr\cdek\request\CityRequest;
 use dicr\cdek\request\PvzRequest;
 use dicr\cdek\request\RegionRequest;
 use dicr\http\CachingClient;
-use dicr\http\HttpCompressionBehavior;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\httpclient\Client;
+use yii\httpclient\CurlTransport;
+
+use function array_merge;
+
+use const CURLOPT_ENCODING;
 
 /**
  * Компонент API службы доставки СДЭК v1.5.
  *
  * @property-read Client $httpClient
+ *
  * @link https://confluence.cdek.ru/display/documentation
  */
 class CdekApi extends Component implements Cdek
@@ -62,7 +67,7 @@ class CdekApi extends Component implements Cdek
      * @inheritDoc
      * @throws InvalidConfigException
      */
-    public function init() : void
+    public function init(): void
     {
         parent::init();
 
@@ -84,14 +89,24 @@ class CdekApi extends Component implements Cdek
      * @return Client
      * @throws InvalidConfigException
      */
-    public function getHttpClient() : Client
+    public function getHttpClient(): Client
     {
         if ($this->_httpClient === null) {
             $this->_httpClient = Yii::createObject(array_merge([
                 'class' => CachingClient::class,
+                'transport' => CurlTransport::class,
                 'baseUrl' => $this->debug ? self::URL_INTEGRATION_TEST : self::URL_INTEGRATION,
-                'as compression' => [
-                    'class' => HttpCompressionBehavior::class
+                'requestConfig' => [
+                    'format' => Client::FORMAT_URLENCODED,
+                    'headers' => [
+                        'Accept' => 'application/json'
+                    ],
+                    'options' => [
+                        CURLOPT_ENCODING => ''
+                    ]
+                ],
+                'responseConfig' => [
+                    'format' => Client::FORMAT_JSON
                 ]
             ], $this->httpConfig ?: []));
         }
@@ -100,14 +115,31 @@ class CdekApi extends Component implements Cdek
     }
 
     /**
+     * Запрос.
+     *
+     * @param array $config
+     * @return CdekRequest
+     * @throws InvalidConfigException
+     */
+    public function request(array $config): CdekRequest
+    {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return Yii::createObject($config, [$this]);
+    }
+
+    /**
      * Запрос списка регионов.
      *
      * @param array $config
      * @return RegionRequest
+     * @throws InvalidConfigException
+     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public function regionRequest(array $config = []) : RegionRequest
+    public function regionRequest(array $config = []): RegionRequest
     {
-        return new RegionRequest($this, $config);
+        return $this->request(array_merge($config, [
+            'class' => RegionRequest::class
+        ]));
     }
 
     /**
@@ -115,10 +147,14 @@ class CdekApi extends Component implements Cdek
      *
      * @param array $config
      * @return CityRequest
+     * @throws InvalidConfigException
+     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public function cityRequest(array $config = []) : CityRequest
+    public function cityRequest(array $config = []): CityRequest
     {
-        return new CityRequest($this, $config);
+        return $this->request(array_merge($config, [
+            'class' => CityRequest::class
+        ]));
     }
 
     /**
@@ -126,10 +162,14 @@ class CdekApi extends Component implements Cdek
      *
      * @param array $config
      * @return PvzRequest
+     * @throws InvalidConfigException
+     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public function pvzRequest(array $config = []) : PvzRequest
+    public function pvzRequest(array $config = []): PvzRequest
     {
-        return new PvzRequest($this, $config);
+        return $this->request(array_merge($config, [
+            'class' => PvzRequest::class
+        ]));
     }
 
     /**
@@ -137,9 +177,13 @@ class CdekApi extends Component implements Cdek
      *
      * @param array $config
      * @return CalcRequest
+     * @throws InvalidConfigException
+     * @noinspection PhpIncompatibleReturnTypeInspection
      */
-    public function calcRequest(array $config = []) : CalcRequest
+    public function calcRequest(array $config = []): CalcRequest
     {
-        return new CalcRequest($this, array_merge($this->calcRequestConfig, $config));
+        return $this->request(array_merge($config, [
+            'class' => CalcRequest::class
+        ]));
     }
 }

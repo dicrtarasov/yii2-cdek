@@ -3,18 +3,18 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:47:54
+ * @version 19.04.21 14:31:44
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\entity;
 
-use dicr\cdek\AbstractEntity;
+use dicr\cdek\CdekEntity;
 
 /**
  * Регион в базе СДЭК.
  */
-class Region extends AbstractEntity
+class Region extends CdekEntity
 {
     /** @var string UUID Идентификатор сущности в ИС СДЭК */
     public $regionUuid;

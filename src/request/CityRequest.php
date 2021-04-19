@@ -3,20 +3,17 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:49:36
+ * @version 19.04.21 14:29:07
  */
 
 declare(strict_types = 1);
 
 namespace dicr\cdek\request;
 
-use dicr\cdek\AbstractRequest;
+use dicr\cdek\CdekRequest;
 use dicr\cdek\entity\City;
-use yii\base\Exception;
-use yii\httpclient\Request;
 
 use function array_map;
-use function array_merge;
 
 /**
  * Запрос списка городов.
@@ -25,11 +22,8 @@ use function array_merge;
  * @package dicr\cdek
  * @see https://confluence.cdek.ru/pages/viewpage.action?pageId=15616129#id-%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%BE%D0%B1%D0%BC%D0%B5%D0%BD%D0%B0%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%BC%D0%B8(v1.5)-4.13.City%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%BE%D0%B2
  */
-class CityRequest extends AbstractRequest
+class CityRequest extends CdekRequest
 {
-    /** @var string  адрес запроса */
-    public const URL_XML = '/v1/location/cities';
-
     /** @var string адрес запроса */
     public const URL_JSON = '/v1/location/cities/json';
 
@@ -69,7 +63,7 @@ class CityRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    public function attributeLabels() : array
+    public function attributeLabels(): array
     {
         return [
             'regionCodeExt' => 'Код региона',
@@ -88,7 +82,7 @@ class CityRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['regionCodeExt', 'trim'],
@@ -130,22 +124,25 @@ class CityRequest extends AbstractRequest
     /**
      * @inheritDoc
      */
-    protected function httpRequest() : Request
+    protected function method(): string
     {
-        return $this->api->httpClient->get(array_merge($this->json, [
-            0 => self::URL_JSON
-        ]), null, [
-            'Accept' => 'application/json'
-        ]);
+        return 'GET';
     }
 
     /**
-     * Отправляет запрос и возвращает список регионов.
+     * @inheritDoc
+     */
+    protected function url(): array
+    {
+        return [self::URL_JSON] + $this->json;
+    }
+
+    /**
+     * {@inheritDoc}}
      *
      * @return City[]
-     * @throws Exception
      */
-    public function send() : array
+    public function send(): array
     {
         return array_map(static fn(array $json): City => new City([
             'json' => $json

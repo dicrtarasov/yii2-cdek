@@ -1,20 +1,20 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:46:34
+ * @version 19.04.21 14:31:44
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\entity;
 
-use dicr\cdek\AbstractEntity;
+use dicr\cdek\CdekEntity;
 
 /**
  * Описание тарифа.
  */
-class Tariff extends AbstractEntity
+class Tariff extends CdekEntity
 {
     /** @var int Заданный приоритет (CdekApi::TARIF_TYPES) */
     public $priority;

@@ -1,9 +1,11 @@
 {
     "name": "dicr/yii2-cdek",
     "type": "yii2-extension",
-    "description": "API службы доставки СДЭК",
     "license": "Apache-2.0",
+    "description": "API службы доставки СДЭК",
+    "keywords": ["dicr", "php", "yii2", "cdek"],
     "homepage": "https://gitlab.com/dicr/yii2-cdek",
+
     "authors": [
         {
             "name": "Igor Tarasov",
@@ -12,40 +14,48 @@
             "role": "developer"
         }
     ],
+
     "support": {
         "source": "https://gitlab.com/dicr/yii2-cdek.git"
     },
-    "keywords": [
-        "dicr", "php", "yii2", "cdek"
-    ],
+
     "autoload": {
         "psr-4": {
             "dicr\\cdek\\": "src/"
         }
     },
+
     "autoload-dev": {
         "psr-4": {
             "dicr\\tests\\": "tests/"
         }
     },
+
     "minimum-stability": "RC",
     "prefer-stable": true,
+
     "require": {
         "php": "~7.4 || ~8.0.1",
+        "ext-curl": "*",
         "ext-zlib": "*",
+
         "yiisoft/yii2": "~2.0",
         "yiisoft/yii2-httpclient": "~2.0",
 
-        "dicr/yii2-http": "~2.1",
+        "dicr/yii2-helper": "~4.5",
+        "dicr/yii2-http": "~2.2",
         "dicr/yii2-json": "~2.0",
         "dicr/yii2-validate": "~2.3"
     },
+
     "require-dev": {
-        "roave/security-advisories": "dev-master",
+        "roave/security-advisories": "dev-latest",
         "phpunit/phpunit": "~9.5"
     },
+
     "repositories": [
         {"type": "composer", "url": "https://asset-packagist.org"},
+        {"type": "git", "url": "https://gitlab.com/dicr/yii2-helper.git"},
         {"type": "git", "url": "https://gitlab.com/dicr/yii2-http.git"},
         {"type": "git", "url": "https://gitlab.com/dicr/yii2-json.git"},
         {"type": "git", "url": "https://gitlab.com/dicr/yii2-validate.git"}

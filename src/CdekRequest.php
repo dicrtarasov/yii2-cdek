@@ -1,25 +1,24 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:47:25
+ * @version 19.04.21 14:31:44
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek;
 
+use dicr\helper\Log;
 use dicr\validate\ValidateException;
 use InvalidArgumentException;
-use Yii;
 use yii\base\Exception;
 use yii\httpclient\Client;
-use yii\httpclient\Request;
 
 /**
  * Базовый класс запросов.
  */
-abstract class AbstractRequest extends AbstractEntity
+abstract class CdekRequest extends CdekEntity
 {
     /** @var CdekApi */
     protected $api;
@@ -39,11 +38,28 @@ abstract class AbstractRequest extends AbstractEntity
     }
 
     /**
-     * HTTP-запрос.
+     * Метод запроса.
      *
-     * @return Request
+     * @return string
      */
-    abstract protected function httpRequest() : Request;
+    abstract protected function method(): string;
+
+    /**
+     * URL запроса.
+     *
+     * @return string|array
+     */
+    abstract protected function url();
+
+    /**
+     * Данные запроса
+     *
+     * @return ?array
+     */
+    protected function data(): array
+    {
+        return [];
+    }
 
     /**
      * Отправка запроса.
@@ -58,11 +74,15 @@ abstract class AbstractRequest extends AbstractEntity
             throw new ValidateException($this);
         }
 
-        $request = $this->httpRequest();
-        Yii::debug('Запрос: ' . $request->toString());
+        $request = $this->api->httpClient->createRequest()
+            ->setMethod($this->method())
+            ->setUrl($this->url())
+            ->setData($this->data());
+
+        Log::debug('Запрос: ' . $request->toString());
 
         $response = $request->send();
-        Yii::debug('Ответ: ' . $response->toString());
+        Log::debug('Ответ: ' . $response->toString());
 
         if (! $response->isOk) {
             throw new Exception('HTTP-error: ' . $response->statusCode);

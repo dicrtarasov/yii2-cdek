@@ -1,20 +1,20 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 05:20:07
+ * @version 19.04.21 15:25:42
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\entity;
 
-use dicr\cdek\AbstractEntity;
+use dicr\cdek\CdekEntity;
 
 /**
  * Информация о фотографии
  */
-class Image extends AbstractEntity
+class Image extends CdekEntity
 {
     /** @var string url изображения */
     public $url;
@@ -22,7 +22,7 @@ class Image extends AbstractEntity
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['url', 'trim'],

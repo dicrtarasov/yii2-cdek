@@ -3,18 +3,18 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 02.02.21 05:49:36
+ * @version 19.04.21 14:31:44
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\entity;
 
-use dicr\cdek\AbstractEntity;
+use dicr\cdek\CdekEntity;
 
 /**
  * Отправляемая посылка.
  */
-class Good extends AbstractEntity
+class Good extends CdekEntity
 {
     /** @var float Вес упаковки (в килограммах) */
     public $weight;

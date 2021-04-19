@@ -3,7 +3,7 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:29:07
+ * @version 19.04.21 17:13:44
  */
 
 declare(strict_types = 1);
@@ -94,10 +94,11 @@ class CdekApi extends Component implements Cdek
         if ($this->_httpClient === null) {
             $this->_httpClient = Yii::createObject(array_merge([
                 'class' => CachingClient::class,
+                'cacheMethods' => ['GET', 'POST'],
                 'transport' => CurlTransport::class,
                 'baseUrl' => $this->debug ? self::URL_INTEGRATION_TEST : self::URL_INTEGRATION,
                 'requestConfig' => [
-                    'format' => Client::FORMAT_URLENCODED,
+                    'format' => Client::FORMAT_JSON,
                     'headers' => [
                         'Accept' => 'application/json'
                     ],

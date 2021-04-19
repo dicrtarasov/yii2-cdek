@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd327125372d63e85ec677a3c9a171af",
+    "content-hash": "361b4043740a951fe7b21c8c3d43014d",
     "packages": [
         {
             "name": "bower-asset/inputmask",
@@ -203,11 +203,11 @@
         },
         {
             "name": "dicr/yii2-http",
-            "version": "2.2.0",
+            "version": "2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://gitlab.com/dicr/yii2-http.git",
-                "reference": "c8d75e18cbce02b460b9866646ff30cbb61d5ac0"
+                "reference": "7dcce828083acd3a6e77612c3483a1bcf8659a7e"
             },
             "require": {
                 "dicr/yii2-helper": "~4.5",
@@ -256,7 +256,7 @@
             "support": {
                 "source": "https://gitlab.com/dicr/yii2-http.git"
             },
-            "time": "2021-03-19T01:25:27+00:00"
+            "time": "2021-04-19T12:02:42+00:00"
         },
         {
             "name": "dicr/yii2-json",

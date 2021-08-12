@@ -42,8 +42,8 @@
         "yiisoft/yii2": "~2.0",
         "yiisoft/yii2-httpclient": "~2.0",
 
-        "dicr/yii2-helper": "~4.5",
-        "dicr/yii2-http": "~2.5",
+        "dicr/yii2-helper": "~5.0",
+        "dicr/yii2-http": "~3.0",
         "dicr/yii2-json": "~2.0",
         "dicr/yii2-validate": "~2.3"
     },

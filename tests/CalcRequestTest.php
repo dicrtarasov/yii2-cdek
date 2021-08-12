@@ -1,16 +1,16 @@
 <?php
 /*
- * @copyright 2019-2020 Dicr http://dicr.org
+ * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 06.12.20 07:58:48
+ * @version 12.08.21 22:58:27
  */
 
 declare(strict_types = 1);
 
 namespace dicr\tests;
 
-use dicr\cdek\CdekApi;
+use dicr\cdek\Cdek;
 use dicr\helper\ArrayHelper;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
@@ -34,10 +34,10 @@ class CalcRequestTest extends AbstractTest
             'senderCityPostCode' => 614087, // Пермь
             'receiverCityId' => 44, // Москва,
             'tariffList' => [
-                ['id' => CdekApi::TARIF_POST_S_S],
-                ['id' => CdekApi::TARIF_POST_S_D],
-                ['id' => CdekApi::TARIF_ECOPOST_S_D],
-                ['id' => CdekApi::TARIF_ECOPOST_S_S]
+                ['id' => Cdek::TARIF_POST_S_S],
+                ['id' => Cdek::TARIF_POST_S_D],
+                ['id' => Cdek::TARIF_ECOPOST_S_D],
+                ['id' => Cdek::TARIF_ECOPOST_S_S]
             ],
             'goods' => [
                 [

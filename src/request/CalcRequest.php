@@ -3,14 +3,14 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 15:25:40
+ * @version 12.08.21 22:58:27
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\request;
 
 use ArrayAccess;
-use dicr\cdek\CdekApi;
+use dicr\cdek\Cdek;
 use dicr\cdek\CdekRequest;
 use dicr\cdek\entity\Good;
 use dicr\cdek\entity\ServiceParams;
@@ -199,7 +199,7 @@ class CalcRequest extends CdekRequest
                 'skipOnEmpty' => false],
 
             ['tariffId', 'default'],
-            ['tariffId', 'in', 'range' => array_keys(CdekApi::TARIF_TYPES)],
+            ['tariffId', 'in', 'range' => array_keys(Cdek::TARIF_TYPES)],
             ['tariffId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['tariffList', 'default'],
@@ -219,7 +219,7 @@ class CalcRequest extends CdekRequest
                 'skipOnEmpty' => false],
 
             ['modeId', 'default'],
-            ['modeId', 'in', 'range' => array_keys(CdekApi::DELIVERY_TYPES)],
+            ['modeId', 'in', 'range' => array_keys(Cdek::DELIVERY_TYPES)],
             ['modeId', 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['goods', 'required'],
@@ -255,7 +255,7 @@ class CalcRequest extends CdekRequest
      */
     protected function url(): string
     {
-        return ($this->api->debug ? CdekApi::URL_CALC_TEST : CdekApi::URL_CALC) . self::URL;
+        return ($this->api->debug ? Cdek::URL_CALC_TEST : Cdek::URL_CALC) . self::URL;
     }
 
     /**
@@ -267,9 +267,9 @@ class CalcRequest extends CdekRequest
 
         return array_merge($this->json, [
             'version' => self::API_VERSION,
-            'authLogin' => $this->api->debug ? CdekApi::LOGIN_TEST : $this->api->login,
+            'authLogin' => $this->api->debug ? Cdek::LOGIN_TEST : $this->api->login,
             'dateExecute' => $date,
-            'secure' => md5($date . '&' . ($this->api->debug ? CdekApi::PASSWORD_TEST : $this->api->password))
+            'secure' => md5($date . '&' . ($this->api->debug ? Cdek::PASSWORD_TEST : $this->api->password))
         ]);
     }
 

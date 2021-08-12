@@ -68,6 +68,7 @@
       <path value="$PROJECT_DIR$/vendor/nikic/php-parser" />
       <path value="$PROJECT_DIR$/vendor/yiisoft/yii2-bootstrap4" />
       <path value="$PROJECT_DIR$/vendor/dicr/yii2-json" />
+      <path value="$PROJECT_DIR$/vendor/paragonie/random_compat" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.4" />

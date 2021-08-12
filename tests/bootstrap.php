@@ -3,12 +3,13 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 15:25:40
+ * @version 12.08.21 22:58:27
  */
 
 /** @noinspection PhpUnhandledExceptionInspection, PhpUnused */
 declare(strict_types = 1);
 
+use dicr\cdek\Cdek;
 use dicr\cdek\CdekApi;
 use yii\caching\FileCache;
 use yii\console\Application;
@@ -38,8 +39,8 @@ new Application([
         'api' => [
             'class' => CdekApi::class,
             'debug' => true,
-            'login' => CdekApi::LOGIN_TEST,
-            'password' => CdekApi::PASSWORD_TEST,
+            'login' => Cdek::LOGIN_TEST,
+            'password' => Cdek::PASSWORD_TEST,
         ],
         'log' => [
             'targets' => [

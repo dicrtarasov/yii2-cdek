@@ -3,12 +3,13 @@
  * @copyright 2019-2021 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:29:07
+ * @version 12.08.21 22:58:27
  */
 
 declare(strict_types = 1);
 namespace dicr\cdek\request;
 
+use dicr\cdek\Cdek;
 use dicr\cdek\CdekRequest;
 use dicr\cdek\entity\Pvz;
 
@@ -108,7 +109,7 @@ class PvzRequest extends CdekRequest
             [['cityid', 'countryid', 'regionid'], 'filter', 'filter' => 'intval', 'skipOnEmpty' => true],
 
             ['type', 'default'],
-            ['type', 'in', 'range' => array_keys(Pvz::TYPES)],
+            ['type', 'in', 'range' => array_keys(Cdek::TYPES)],
 
             ['countryiso', 'default'],
             ['countryiso', 'string', 'length' => 2],

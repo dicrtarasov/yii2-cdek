@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 15:54:36
  */
 
 declare(strict_types = 1);
@@ -20,56 +20,56 @@ use dicr\cdek\CdekEntity;
  */
 class City extends CdekEntity
 {
-    /** @var string UUID Идентификатор сущности в ИС СДЭК */
-    public $cityUuid;
+    /** UUID Идентификатор сущности в ИС СДЭК */
+    public ?string $cityUuid = null;
 
-    /** @var string string[255] Название города */
-    public $cityName;
+    /** string[255] Название города */
+    public ?string $cityName = null;
 
-    /** @var int Код города по базе СДЭК */
-    public $cityCode;
+    /** Код города по базе СДЭК */
+    public string|int|null $cityCode = null;
 
-    /** @var string string[255] Название региона */
-    public $region;
+    /** Название региона */
+    public ?string $region = null;
 
-    /** @var int|null Код региона */
-    public $regionCodeExt;
+    /** Код региона */
+    public string|int|null $regionCodeExt = null;
 
-    /** @var int|null Код региона в ИС СДЭК */
-    public $regionCode;
+    /** Код региона в ИС СДЭК */
+    public string|int|null $regionCode = null;
 
-    /** @var string|null string(255) Название района региона */
-    public $subRegion;
+    /** Название района региона */
+    public ?string $subRegion = null;
 
-    /** @var string string(255) Название страны */
-    public $country;
+    /** Название страны */
+    public ?string $country = null;
 
-    /** @var int Код страны */
-    public $countryCode;
+    /** Код страны */
+    public string|int|null $countryCode = null;
 
-    /** @var float|null Широта */
-    public $latitude;
+    /** Широта */
+    public string|float|null $latitude = null;
 
-    /** @var float|null Долгота */
-    public $longitude;
+    /** Долгота */
+    public string|float|null $longitude = null;
 
-    /** @var string|null string(20) Код города по КЛАДР */
-    public $kladr;
+    /** Код города по КЛАДР */
+    public ?string $kladr = null;
 
-    /** @var string|null UUID Код адресного объекта в ФИАС */
-    public $fiasGuid;
+    /** UUID Код адресного объекта в ФИАС */
+    public ?string $fiasGuid = null;
 
-    /** @var string|null UUID Код региона из ФИАС */
-    public $regionFiasGuid;
+    /** UUID Код региона из ФИАС */
+    public ?string $regionFiasGuid = null;
 
     /**
-     * @var float Ограничение на сумму наложенного платежа, возможные значения:
+     * Ограничение на сумму наложенного платежа, возможные значения:
      *   -1 - ограничения нет;
      *    0 - наложенный платеж не принимается;
      *    положительное значение - сумма наложенного платежа не более данного значения.
      */
-    public $paymentLimit;
+    public string|float|null $paymentLimit = null;
 
-    /** @var string|null Часовой пояс города */
-    public $timezone;
+    /** Часовой пояс города */
+    public ?string $timezone = null;
 }

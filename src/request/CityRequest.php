@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:29:07
+ * @version 08.01.22 16:27:33
  */
 
 declare(strict_types = 1);
@@ -24,41 +24,42 @@ use function array_map;
  */
 class CityRequest extends CdekRequest
 {
-    /** @var string адрес запроса */
+    /** адрес запроса */
     public const URL_JSON = '/v1/location/cities/json';
 
-    /** @var int|null Код региона */
-    public $regionCodeExt;
+    /** Код региона */
+    public string|int|null $regionCodeExt = null;
 
-    /** @var int|null Код региона в ИС СДЭК */
-    public $regionCode;
+    /** Код региона в ИС СДЭК */
+    public string|int|null $regionCode = null;
 
-    /** @var string|null Код региона из ФИАС */
-    public $regionFiasGuid;
+    /** Код региона из ФИАС */
+    public ?string $regionFiasGuid = null;
 
-    /** @var int|null Номер страницы выборки результата. По умолчанию 0 */
-    public $page;
+    /** Номер страницы выборки результата. По умолчанию 0 */
+    public string|int|null $page = null;
 
-    /** @var int|null Ограничение выборки результата. По умолчанию 1000 */
-    public $size;
+    /** Ограничение выборки результата. По умолчанию 1000 */
+    public string|int|null $size = null;
 
-    /** @var string string(2) Код страны в формате ISO 3166-1 alpha-2 */
-    public $countryCode;
+    /** Код страны в формате ISO 3166-1 alpha-2 */
+    public ?string $countryCode = null;
 
-    /** @var string|null Название города */
-    public $cityName;
+    /** Название города */
+    public ?string $cityName = null;
 
     /**
-     * @var int|null Код города по базе СДЭК
+     * Код города по базе СДЭК
+     *
      * @link https://cdek.ru/storage/source/document/1/CDEK_city.zip
      */
-    public $cityCode;
+    public string|int|null $cityCode = null;
 
-    /** @var string|null Почтовый индекс */
-    public $postcode;
+    /** Почтовый индекс */
+    public string|int|null $postcode = null;
 
-    /** @var string|null string(3) Локализация. По-умолчанию "rus" */
-    public $lang;
+    /** Локализация. По-умолчанию "rus" */
+    public ?string $lang = null;
 
     /**
      * @inheritDoc

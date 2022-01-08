@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:27:33
  */
 
 declare(strict_types = 1);
@@ -16,16 +16,16 @@ use dicr\cdek\CdekEntity;
  */
 class WeightLimit extends CdekEntity
 {
-    /** @var ?float Минимальный вес (в кг.), принимаемый в ПВЗ (> WeightMin) */
-    public $weightMin;
+    /** Минимальный вес (в кг.), принимаемый в ПВЗ (> WeightMin) */
+    public string|float|null $weightMin = null;
 
-    /** @var ?float Максимальный вес (в кг.), принимаемый в ПВЗ (<=WeightMax) */
-    public $weightMax;
+    /** Максимальный вес (в кг.), принимаемый в ПВЗ (<=WeightMax) */
+    public string|float|null $weightMax = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             [['weightMin', 'weightMax'], 'default'],

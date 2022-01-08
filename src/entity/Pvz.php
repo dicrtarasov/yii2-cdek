@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 15:25:40
+ * @version 08.01.22 16:11:32
  */
 
 declare(strict_types = 1);
@@ -14,6 +14,7 @@ use dicr\cdek\CdekEntity;
 use dicr\json\EntityValidator;
 
 use function array_keys;
+use function is_array;
 
 /**
  * Пункт выдачи заказов (ПВЗ).
@@ -22,124 +23,121 @@ use function array_keys;
  */
 class Pvz extends CdekEntity implements Cdek
 {
-    /** @var string (10) код ПВЗ */
-    public $code;
+    /** код ПВЗ */
+    public ?string $code = null;
 
-    /** @var string */
-    public $status;
+    public ?string $status = null;
 
-    /** @var ?int Почтовый индекс */
-    public $postalCode;
+    /** Почтовый индекс */
+    public string|int|null $postalCode = null;
 
-    /** @var string (50) название */
-    public $name;
+    /** название */
+    public ?string $name = null;
 
-    /** @var int Код страны */
-    public $countryCode;
+    /** Код страны */
+    public ?string $countryCode = null;
 
-    /** @var string (2) Код страны в формате ISO_3166-1_alpha-2 */
-    public $countryCodeIso;
+    /** Код страны в формате ISO_3166-1_alpha-2 */
+    public ?string $countryCodeIso = null;
 
-    /** @var string Название страны */
-    public $countryName;
+    /** Название страны */
+    public ?string $countryName = null;
 
-    /** @var int Код региона */
-    public $regionCode;
+    /** Код региона */
+    public string|int|null $regionCode = null;
 
-    /** @var string Название региона */
-    public $regionName;
+    /** Название региона */
+    public ?string $regionName = null;
 
-    /** @var int код города по базе СДЭК */
-    public $cityCode;
+    /** код города по базе СДЭК */
+    public string|int|null $cityCode = null;
 
-    /** @var string (50) название города */
-    public $city;
+    /** название города */
+    public ?string $city = null;
 
-    /** @var string (100) Режим работы, строка вида «пн-пт 9-18, сб 9-16» */
-    public $workTime;
+    /** Режим работы, строка вида «пн-пт 9-18, сб 9-16» */
+    public ?string $workTime = null;
 
-    /** @var string (255) Адрес (улица, дом, офис) в указанном городе */
-    public $address;
+    /** Адрес (улица, дом, офис) в указанном городе */
+    public ?string $address = null;
 
-    /** @var string Полный адрес с указанием страны, региона, города, и т.д. */
-    public $fullAddress;
+    /** Полный адрес с указанием страны, региона, города, и т.д. */
+    public ?string $fullAddress = null;
 
-    /** @var string Телефоны через запятую */
-    public $phone;
+    /** Телефоны через запятую */
+    public string|array|null $phone = null;
 
-    /** @var string (255) Примечание по ПВЗ */
-    public $note;
+    /** Примечание по ПВЗ */
+    public ?string $note = null;
 
-    /** @var Phone[] */
-    public $phoneDetailList;
+    /** @var Phone[]|null */
+    public ?array $phoneDetailList = null;
 
-    /** @var string Адрес электронной почты */
-    public $email;
+    /** Адрес электронной почты */
+    public ?string $email = null;
 
-    /** @var ?string Описание местоположения */
-    public $addressComment;
+    /** Описание местоположения */
+    public ?string $addressComment = null;
 
-    /** @var ?float Координаты местоположения (долгота) в градусах */
-    public $coordX;
+    /** Координаты местоположения (долгота) в градусах */
+    public string|float|null $coordX = null;
 
-    /** @var ?float Координаты местоположения (широта) в градусах */
-    public $coordY;
+    /** Координаты местоположения (широта) в градусах */
+    public string|float|null $coordY = null;
 
-    /** @var string Тип ПВЗ: Склад СДЭК или Почтомат партнера (TYPE_*) */
-    public $type;
+    /** Тип ПВЗ: Склад СДЭК или Почтомат партнера (TYPE_*) */
+    public ?string $type = null;
 
-    /** @var string Принадлежность ПВЗ компании (OWNER_*) */
-    public $ownerCode;
+    /** Принадлежность ПВЗ компании (OWNER_*) */
+    public ?string $ownerCode = null;
 
-    /** @var bool Есть ли примерочная */
-    public $isDressingRoom;
+    /** Есть ли примерочная */
+    public string|bool|null $isDressingRoom = null;
 
-    /** @var bool Есть терминал оплаты */
-    public $haveCashless;
+    /** Есть терминал оплаты */
+    public string|bool|null $haveCashless = null;
 
-    /** @var bool Есть приём наличных */
-    public $haveCash;
+    /** Есть приём наличных */
+    public string|bool|null $haveCash = null;
 
-    /** @var bool Разрешен наложенный платеж в ПВЗ */
-    public $allowedCod;
+    /** Разрешен наложенный платеж в ПВЗ */
+    public string|bool|null $allowedCod = null;
 
-    /** @var bool только прием */
-    public $takeOnly;
+    /** только прием */
+    public string|bool|null $takeOnly = null;
 
-    /** @var ?bool */
-    public $isHandout;
+    public string|bool|null $isHandout = null;
 
-    /** @var ?bool */
-    public $fulfillment;
+    public string|bool|null $fulfillment = null;
 
-    /** @var string (50) Ближайшая станция/остановка транспорта */
-    public $nearestStation;
+    /** Ближайшая станция/остановка транспорта */
+    public ?string $nearestStation = null;
 
-    /** @var string (50) Ближайшая станция метро */
-    public $metroStation;
+    /** Ближайшая станция метро */
+    public ?string $metroStation = null;
 
-    /** @var ?string сайт */
-    public $site;
+    /** сайт */
+    public ?string $site = null;
 
     /** @var Image[]|null Все фото офиса (кроме фото как доехать). */
-    public $officeImage;
+    public ?array $officeImage = null;
 
-    /** @var WorkTimeY[] график работы на неделю. */
-    public $workTimeYList;
+    /** @var WorkTimeY[]|null график работы на неделю. */
+    public ?array $workTimeYList = null;
 
-    /** @var WorkTimeException[] Исключения в графике работы офиса */
-    public $workTimeExceptions;
+    /** @var WorkTimeException[]|null Исключения в графике работы офиса */
+    public ?array $workTimeExceptions = null;
 
-    /** @var ?WeightLimit лимиты веса */
-    public $weightLimit;
+    /** лимиты веса */
+    public ?WeightLimit $weightLimit = null;
 
     /** @var Dimension[]|null Перечень максимальных размеров ячеек постамата */
-    public $dimensions;
+    public ?array $dimensions = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['code', 'required'],
@@ -187,6 +185,12 @@ class Pvz extends CdekEntity implements Cdek
             ['fullAddress', 'required'],
             ['fullAddress', 'string', 'max' => 255],
 
+            ['phone', function (string $attribute) {
+                if (is_array($this->{$attribute})) {
+                    $this->{$attribute} = implode(',', $this->{$attribute});
+                }
+            }],
+            ['phone', 'trim'],
             ['phone', 'required'],
             ['phone', 'string', 'max' => 50],
 
@@ -247,7 +251,7 @@ class Pvz extends CdekEntity implements Cdek
     /**
      * @inheritDoc
      */
-    public function attributeEntities() : array
+    public function attributeEntities(): array
     {
         return [
             'phoneDetailList' => [Phone::class],

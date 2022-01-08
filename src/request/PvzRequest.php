@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 12.08.21 22:58:27
+ * @version 08.01.22 16:11:54
  */
 
 declare(strict_types = 1);
@@ -23,54 +23,55 @@ use function array_map;
  */
 class PvzRequest extends CdekRequest
 {
-    /** @var string URL запроса для JSON-ответа */
+    /** URL запроса для JSON-ответа */
     public const URL_JSON = '/pvzlist/v1/json';
 
-    /** @var string URL запроса для XML-ответа */
+    /** URL запроса для XML-ответа */
     public const URL_XML = '/pvzlist/v1/xml';
 
-    /** @var int|null почтовый индекс города (если не задан id) */
-    public $citypostcode;
+    /** почтовый индекс города (если не задан id) */
+    public string|int|null $citypostcode = null;
 
-    /** @var int|null код города по базе СДЭК */
-    public $cityid;
+    /** код города по базе СДЭК */
+    public string|int|null $cityid = null;
 
-    /** @var string|null Тип пункта выдачи (Pvz::TYPES) */
-    public $type;
+    /** Тип пункта выдачи (Pvz::TYPES) */
+    public ?string $type = null;
 
-    /** @var int|null Код страны по базе СДЭК */
-    public $countryid;
+    /** Код страны по базе СДЭК */
+    public string|int|null $countryid = null;
 
-    /** @var string|null [2] Код страны в формате ISO_3166-1_alpha-2 (см. “Общероссийский классификатор стран мира”) */
-    public $countryiso;
+    /** Код страны в формате ISO_3166-1_alpha-2 (см. “Общероссийский классификатор стран мира”) */
+    public ?string $countryiso = null;
 
-    /** @var int|null Код региона по базе СДЭК */
-    public $regionid;
+    /** Код региона по базе СДЭК */
+    public string|int|null $regionid = null;
 
-    /** @var bool|null Наличие терминала оплаты */
-    public $havecashless;
+    /** Наличие терминала оплаты */
+    public ?bool $havecashless = null;
 
-    /** @var bool|null Разрешен наложенный платеж */
-    public $allowedcod;
+    /** Разрешен наложенный платеж */
+    public ?bool $allowedcod = null;
 
-    /** @var bool|null Наличие примерочной */
-    public $isdressingroom;
+    /** Наличие примерочной */
+    public ?bool $isdressingroom = null;
 
-    /** @var int|null Максимальный вес, который может принять ПВЗ
+    /**
+     * Максимальный вес, который может принять ПВЗ
      *  - значения больше 0 - передаются ПВЗ, которые принимают этот вес;
      *  - 0 - все ПВЗ;
      *  - значение не указано - ПВЗ с нулевым весом не передаются.
      */
-    public $weightmax;
+    public string|int|null $weightmax = null;
 
-    /** @var int|null Минимальный вес в кг, который принимает ПВЗ (при переданном значении будут выводиться ПВЗ с минимальным весом до указанного значения) */
-    public $weightmin;
+    /** Минимальный вес в кг, который принимает ПВЗ (при переданном значении будут выводиться ПВЗ с минимальным весом до указанного значения) */
+    public string|int|null $weightmin = null;
 
-    /** @var string|null Локализация ПВЗ. По умолчанию "rus" */
-    public $lang;
+    /** Локализация ПВЗ. По умолчанию "rus" */
+    public ?string $lang = null;
 
-    /** @var bool|null Является ли ПВЗ только пунктом выдачи (либо только прием посылок на отправку) */
-    public $takeonly;
+    /** Является ли ПВЗ только пунктом выдачи (либо только прием посылок на отправку) */
+    public string|bool|null $takeonly = null;
 
     /**
      * {@inheritDoc}

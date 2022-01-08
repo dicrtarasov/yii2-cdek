@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:20:03
  */
 
 declare(strict_types = 1);
@@ -16,16 +16,16 @@ use dicr\cdek\CdekEntity;
  */
 class WorkTimeY extends CdekEntity
 {
-    /** @var int Порядковый номер дня начиная с единицы. Понедельник = 1, воскресенье = 7 */
-    public $day;
+    /** Порядковый номер дня начиная с единицы. Понедельник = 1, воскресенье = 7 */
+    public string|int|null $day = null;
 
-    /** @var string Период работы в эти дни. Если в этот день не работают, то не отображать. ("10:00/16:00") */
-    public $periods;
+    /** Период работы в эти дни. Если в этот день не работают, то не отображать. ("10:00/16:00") */
+    public ?string $periods = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['day', 'required'],

@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 15:37:37
  */
 
 declare(strict_types = 1);
@@ -20,41 +20,30 @@ use yii\httpclient\Client;
  */
 abstract class CdekRequest extends CdekEntity
 {
-    /** @var CdekApi */
-    protected $api;
-
     /**
      * Конструктор.
      *
-     * @param CdekApi $api
-     * @param array $config
      * @throws InvalidArgumentException
      */
-    public function __construct(CdekApi $api, array $config = [])
-    {
-        $this->api = $api;
-
+    public function __construct(
+        protected CdekApi $api,
+        array $config = []
+    ) {
         parent::__construct($config);
     }
 
     /**
      * Метод запроса.
-     *
-     * @return string
      */
     abstract protected function method(): string;
 
     /**
      * URL запроса.
-     *
-     * @return string|array
      */
-    abstract protected function url();
+    abstract protected function url(): array|string;
 
     /**
      * Данные запроса
-     *
-     * @return ?array
      */
     protected function data(): array
     {
@@ -64,11 +53,9 @@ abstract class CdekRequest extends CdekEntity
     /**
      * Отправка запроса.
      *
-     * @return array данные ответа (переопределяется)
      * @throws Exception
-     * @noinspection PhpMissingReturnTypeInspection, ReturnTypeCanBeDeclaredInspection
      */
-    public function send()
+    public function send(): mixed
     {
         if (! $this->validate()) {
             throw new ValidateException($this);

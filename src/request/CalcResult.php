@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:16
+ * @version 08.01.22 15:48:53
  */
 
 declare(strict_types = 1);
@@ -19,41 +19,39 @@ use dicr\cdek\entity\Service;
  */
 class CalcResult extends CdekResponse
 {
-    /** @var float Сумма за доставку в рублях */
-    public $price;
+    /** Сумма за доставку в рублях */
+    public string|float|null $price = null;
 
-    /** @var int Минимальное время доставки в днях */
-    public $deliveryPeriodMin;
+    /** Минимальное время доставки в днях */
+    public string|int|null $deliveryPeriodMin = null;
 
-    /** @var int Максимальное время доставки в днях */
-    public $deliveryPeriodMax;
+    /** Максимальное время доставки в днях */
+    public string|int|null $deliveryPeriodMax = null;
 
-    /** @var string Минимальная дата доставки, формате 'ГГГГ-ММ-ДД' */
-    public $deliveryDateMin;
+    /** Минимальная дата доставки, формате 'ГГГГ-ММ-ДД' */
+    public ?string $deliveryDateMin = null;
 
-    /** @var string Максимальная дата доставки, формате 'ГГГГ-ММ-ДД' */
-    public $deliveryDateMax;
+    /** Максимальная дата доставки, формате 'ГГГГ-ММ-ДД' */
+    public ?string $deliveryDateMax = null;
 
-    /** @var int Код тарифа, по которому рассчитана сумма доставки */
-    public $tariffId;
+    /** Код тарифа, по которому рассчитана сумма доставки */
+    public string|int|null $tariffId = null;
 
-    /** @var float Ограничение оплаты наличными, появляется только если оно есть */
-    public $cashOnDelivery;
+    /** Ограничение оплаты наличными, появляется только если оно есть */
+    public string|float|null $cashOnDelivery = null;
 
-    /** @var float Цена в валюте, по которой ИМ работает со СДЭК. Валюта определяется по authLogin и secure. */
-    public $priceByCurrency;
+    /** Цена в валюте, по которой ИМ работает со СДЭК. Валюта определяется по authLogin и secure. */
+    public string|float|null $priceByCurrency = null;
 
-    /** @var string (3) Валюта интернет-магазина */
-    public $currency;
+    /** Валюта интернет-магазина */
+    public ?string $currency = null;
 
-    /** @var int Размер ставки НДС для данного клиента. Появляется в случае, если переданы authLogin и secure, по ним же определяется ставка ИМ.
+    /** Размер ставки НДС для данного клиента. Появляется в случае, если переданы authLogin и secure, по ним же определяется ставка ИМ.
      * Если ставка НДС не предусмотрена условиями договора, данный параметр не будет отображен.*/
-    public $percentVAT;
+    public string|int|null $percentVAT = null;
 
-    /**
-     * @var Service[] Список передаваемых дополнительных услуг (подробнее см. приложение 2)
-     */
-    public $services;
+    /** @var Service[]|null Список передаваемых дополнительных услуг (подробнее см. приложение 2) */
+    public ?array $services = null;
 
     /**
      * @inheritDoc

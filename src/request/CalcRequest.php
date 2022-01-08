@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 12.08.21 22:58:27
+ * @version 08.01.22 16:27:01
  */
 
 declare(strict_types = 1);
@@ -54,77 +54,70 @@ use function md5;
  */
 class CalcRequest extends CdekRequest
 {
-    /** @var string API version */
     public const API_VERSION = '1.0';
 
-    /** @var string URL API калькулятора */
+    /** URL API калькулятора */
     public const URL = '/calculator/calculate_price_by_json.php';
 
-    /** @var string|null Планируемая дата отправки заказа в формате “ГГГГ-ММ-ДД” */
-    public $dateExecute;
+    /** Планируемая дата отправки заказа в формате “ГГГГ-ММ-ДД” */
+    public ?string $dateExecute = null;
 
-    /** @var string|null Локализация названий городов. По умолчанию "rus" */
-    public $lang;
+    /** Локализация названий городов. По умолчанию "rus" */
+    public ?string $lang = null;
 
-    /** @var string|null Код страны отправителя в формате ISO_3166-1_alpha-2 */
-    public $senderCountryCode;
+    /** Код страны отправителя в формате ISO_3166-1_alpha-2 */
+    public ?string $senderCountryCode = null;
 
-    /** @var int|null Код города отправителя из базы СДЭК */
-    public $senderCityId;
+    /** Код города отправителя из базы СДЭК */
+    public ?int $senderCityId = null;
 
-    /** @var int|null Индекс города отправителя из базы СДЭК (если не задан senderCityId) */
-    public $senderCityPostCode;
+    /** Индекс города отправителя из базы СДЭК (если не задан senderCityId) */
+    public string|int|null $senderCityPostCode = null;
 
-    /** @var string|null Наименование города отправителя */
-    public $senderCity;
+    /** Наименование города отправителя */
+    public ?string $senderCity = null;
 
-    /** @var float|null Широта города отправителя */
-    public $senderLatitude;
+    /** Широта города отправителя */
+    public ?float $senderLatitude = null;
 
-    /** @var float|null Долгота города отправителя */
-    public $senderLongitude;
+    /** Долгота города отправителя */
+    public ?float $senderLongitude = null;
 
-    /** @var string|null Код страны получателя в формате ISO_3166-1_alpha-2 */
-    public $receiverCountryCode;
+    /** Код страны получателя в формате ISO_3166-1_alpha-2 */
+    public ?string $receiverCountryCode = null;
 
-    /** @var int|null Код города получателя из базы СДЭК */
-    public $receiverCityId;
+    /** Код города получателя из базы СДЭК */
+    public ?int $receiverCityId = null;
 
-    /** @var int|null Индекс города получателя из базы СДЭК (если не задан receiverCityId) */
-    public $receiverCityPostCode;
+    /** Индекс города получателя из базы СДЭК (если не задан receiverCityId) */
+    public ?int $receiverCityPostCode = null;
 
-    /** @var string|null Наименование города получателя */
-    public $receiverCity;
+    /** Наименование города получателя */
+    public ?string $receiverCity = null;
 
-    /** @var float|null Широта города получателя */
-    public $receiverLatitude;
+    /** Широта города получателя */
+    public ?float $receiverLatitude = null;
 
-    /** @var float|null Долгота города получателя */
-    public $receiverLongitude;
+    /** Долгота города получателя */
+    public ?float $receiverLongitude = null;
 
-    /** @var int|null Код выбранного тарифа (CdekApi::TARIF_TYPES) */
-    public $tariffId;
+    /** Код выбранного тарифа (CdekApi::TARIF_TYPES) */
+    public ?int $tariffId = null;
 
-    /**
-     * @var Tariff[]|null Список тарифов (если не задан tariffId)
-     */
-    public $tariffList;
+    /** @var Tariff[]|null Список тарифов (если не задан tariffId) */
+    public ?array $tariffList = null;
 
     /**
-     * @var int режим доставки (CdekApi::DELIVERY_TYPES) если указан tariffList
+     * режим доставки (CdekApi::DELIVERY_TYPES) если указан tariffList
      * (ошибка в документации, modeId нет в списке тарифов, поэтому его нужно указывать даже при tariffList)
      */
-    public $modeId;
+    public ?int $modeId = null;
 
-    /**
-     * @var Good[] Габаритные характеристики места
-     */
-    public $goods;
+    /** @var Good[]|null Габаритные характеристики места */
+    public ?array $goods = null;
 
-    /**
-     * @var ServiceParams[] Список передаваемых дополнительных услуг
-     */
-    public $services;
+    /** @var ServiceParams[]|null Список передаваемых дополнительных услуг */
+    public ?array $services = null;
 
     /**
      * @inheritDoc
@@ -275,8 +268,6 @@ class CalcRequest extends CdekRequest
 
     /**
      * {@inheritDoc}
-     *
-     * @return CalcResult
      */
     public function send(): CalcResult
     {

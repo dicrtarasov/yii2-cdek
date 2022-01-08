@@ -35,17 +35,17 @@
     "prefer-stable": true,
 
     "require": {
-        "php": "~7.4 || ~8.0.1",
+        "php": "~8.0",
         "ext-curl": "*",
         "ext-zlib": "*",
 
         "yiisoft/yii2": "~2.0",
         "yiisoft/yii2-httpclient": "~2.0",
 
-        "dicr/yii2-helper": "~5.0",
-        "dicr/yii2-http": "~3.0",
-        "dicr/yii2-json": "~2.0",
-        "dicr/yii2-validate": "~2.3"
+        "dicr/yii2-helper": "~6.0",
+        "dicr/yii2-http": "~4.0",
+        "dicr/yii2-json": "~3.0",
+        "dicr/yii2-validate": "~3.0"
     },
 
     "require-dev": {

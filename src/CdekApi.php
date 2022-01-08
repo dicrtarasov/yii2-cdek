@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 23:43:55
+ * @version 08.01.22 15:51:23
  */
 
 declare(strict_types = 1);
@@ -34,23 +34,20 @@ use const CURLOPT_ENCODING;
 class CdekApi extends Component implements Cdek
 {
     /**
-     * @var string логин магазина
+     * логин магазина
      * При использовании тарифов для обычной доставки авторизация не обязательна и параметры authLogin и secure можно
      * не передавать.
      */
-    public $login;
+    public string $login;
 
-    /** @var string пароль магазина */
-    public $password;
+    /** пароль магазина */
+    public string $password;
 
-    /** @var ?array конфиг http-клиент */
-    public $httpConfig;
+    /** конфиг http-клиента */
+    public array $httpConfig = [];
 
-    /**
-     * @var array конфиг запроса стоимости
-     * @link CalcRequest
-     */
-    public $calcRequestConfig = [
+    /* конфиг запроса стоимости */
+    public array $calcRequestConfig = [
         // senderCityId => код города отправителя по-умолчанию
         // senderCityPostCode => индекс отправителя по-умолчанию
         // tariffId => тариф для расчета по-умолчанию
@@ -60,8 +57,8 @@ class CdekApi extends Component implements Cdek
         // volume => объем посылки по-умолчанию
     ];
 
-    /** @var bool режим отладки */
-    public $debug = false;
+    /** режим отладки */
+    public bool $debug = false;
 
     /**
      * @inheritDoc
@@ -80,18 +77,17 @@ class CdekApi extends Component implements Cdek
         }
     }
 
-    /** @var Client */
-    private $_httpClient;
+    private Client $_httpClient;
 
     /**
      * HTTP-клиент.
      *
-     * @return Client
      * @throws InvalidConfigException
      */
     public function getHttpClient(): Client
     {
-        if ($this->_httpClient === null) {
+        if (! isset($this->_httpClient)) {
+            /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
             $this->_httpClient = Yii::createObject(array_merge([
                 'class' => CachingClient::class,
                 'cacheMethods' => ['GET', 'POST'],
@@ -109,7 +105,7 @@ class CdekApi extends Component implements Cdek
                 'responseConfig' => [
                     'format' => Client::FORMAT_JSON
                 ]
-            ], $this->httpConfig ?: []));
+            ], $this->httpConfig));
         }
 
         return $this->_httpClient;
@@ -118,8 +114,6 @@ class CdekApi extends Component implements Cdek
     /**
      * Запрос.
      *
-     * @param array $config
-     * @return CdekRequest
      * @throws InvalidConfigException
      */
     public function request(array $config): CdekRequest
@@ -131,8 +125,6 @@ class CdekApi extends Component implements Cdek
     /**
      * Запрос списка регионов.
      *
-     * @param array $config
-     * @return RegionRequest
      * @throws InvalidConfigException
      * @noinspection PhpIncompatibleReturnTypeInspection
      */
@@ -146,8 +138,6 @@ class CdekApi extends Component implements Cdek
     /**
      * Запрос списка городов.
      *
-     * @param array $config
-     * @return CityRequest
      * @throws InvalidConfigException
      * @noinspection PhpIncompatibleReturnTypeInspection
      */
@@ -161,8 +151,6 @@ class CdekApi extends Component implements Cdek
     /**
      * Запрос ПВЗ.
      *
-     * @param array $config
-     * @return PvzRequest
      * @throws InvalidConfigException
      * @noinspection PhpIncompatibleReturnTypeInspection
      */
@@ -176,8 +164,6 @@ class CdekApi extends Component implements Cdek
     /**
      * Возвращает запрос расчета доставки.
      *
-     * @param array $config
-     * @return CalcRequest
      * @throws InvalidConfigException
      * @noinspection PhpIncompatibleReturnTypeInspection
      */

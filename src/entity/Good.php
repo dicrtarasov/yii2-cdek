@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:27:33
  */
 
 declare(strict_types = 1);
@@ -16,25 +16,25 @@ use dicr\cdek\CdekEntity;
  */
 class Good extends CdekEntity
 {
-    /** @var float Вес упаковки (в килограммах) */
-    public $weight;
+    /** Вес упаковки (в килограммах) */
+    public string|float|null $weight = null;
 
-    /** @var ?float Объём места, м³ (вместо width, height, length) */
-    public $volume;
+    /** Объём места, м³ (вместо width, height, length) */
+    public string|float|null $volume = null;
 
-    /** @var ?int Длина упаковки (в сантиметрах) */
-    public $length;
+    /** Длина упаковки (в сантиметрах) */
+    public string|int|null $length = null;
 
-    /** @var ?int Ширина упаковки (в сантиметрах) */
-    public $width;
+    /** Ширина упаковки (в сантиметрах) */
+    public string|int|null $width = null;
 
-    /** @var ?int Высота упаковки (в сантиметрах) */
-    public $height;
+    /** Высота упаковки (в сантиметрах) */
+    public string|int|null $height = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['weight', 'required'],

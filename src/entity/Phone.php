@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 15:25:42
+ * @version 08.01.22 15:59:56
  */
 
 declare(strict_types = 1);
@@ -16,8 +16,7 @@ use dicr\cdek\CdekEntity;
  */
 class Phone extends CdekEntity
 {
-    /** @var string */
-    public $number;
+    public ?string $number = null;
 
     /**
      * @inheritDoc

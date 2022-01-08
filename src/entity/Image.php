@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 15:25:42
+ * @version 08.01.22 15:59:41
  */
 
 declare(strict_types = 1);
@@ -16,8 +16,8 @@ use dicr\cdek\CdekEntity;
  */
 class Image extends CdekEntity
 {
-    /** @var string url изображения */
-    public $url;
+    /** url изображения */
+    public ?string $url = null;
 
     /**
      * @inheritDoc

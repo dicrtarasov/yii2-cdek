@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:27:33
  */
 
 declare(strict_types = 1);
@@ -16,22 +16,19 @@ use dicr\cdek\CdekEntity;
  */
 class Tariff extends CdekEntity
 {
-    /** @var int Заданный приоритет (CdekApi::TARIF_TYPES) */
-    public $priority;
+    /** Заданный приоритет (CdekApi::TARIF_TYPES) */
+    public string|int|null $priority = null;
 
-    /** @var int Код тарифа */
-    public $id;
+    /** Код тарифа */
+    public string|int|null $id = null;
 
-    /**
-     * @var ?int Режим доставки
-     * - в документации ошибка - modeId в тарифе не учитывается
-     */
-    public $modelId;
+    /** Режим доставки - в документации ошибка - modeId в тарифе не учитывается */
+    public string|int|null $modelId = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['priority', 'required'],

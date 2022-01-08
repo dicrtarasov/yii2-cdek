@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:51:26
+ * @version 08.01.22 16:15:30
  */
 
 declare(strict_types = 1);
@@ -19,35 +19,35 @@ use dicr\cdek\entity\Region;
  */
 class RegionRequest extends CdekRequest
 {
-    /** @var string URL для получения ответа в XML */
+    /** URL для получения ответа в XML */
     public const URL_XML = '/v1/location/regions';
 
-    /** @var string url для получения ответа в JSON */
+    /** url для получения ответа в JSON */
     public const URL_JSON = '/v1/location/regions/json';
 
-    /** @var string|null [10] Код региона */
-    public $regionCodeExt;
+    /** Код региона */
+    public ?string $regionCodeExt = null;
 
-    /** @var int|null Код региона в ИС СДЭК */
-    public $regionCode;
+    /** Код региона в ИС СДЭК */
+    public string|int|null $regionCode = null;
 
-    /** @var string|null UUID Код региона по ФИАС */
-    public $regionFiasGuid;
+    /** UUID Код региона по ФИАС */
+    public ?string $regionFiasGuid = null;
 
-    /** @var string|null [2] Код страны в формате ISO 3166-1 alpha-2 */
-    public $countryCode;
+    /** Код страны в формате ISO 3166-1 alpha-2 */
+    public ?string $countryCode = null;
 
-    /** @var int|null Код ОКСМ */
-    public $countryCodeExt;
+    /** Код ОКСМ */
+    public string|int|null $countryCodeExt = null;
 
-    /** @var int|null Номер страницы выборки результата. По умолчанию 0 */
-    public $page;
+    /** Номер страницы выборки результата. По умолчанию 0 */
+    public string|int|null $page = null;
 
-    /** @var int|null Ограничение выборки результата. По умолчанию 1000 */
-    public $size;
+    /** Ограничение выборки результата. По умолчанию 1000 */
+    public string|int|null $size = null;
 
-    /** @var string|null [3] Локализация. По умолчанию "rus". */
-    public $lang;
+    /** Локализация. По умолчанию "rus". */
+    public ?string $lang = null;
 
     /**
      * @inheritDoc

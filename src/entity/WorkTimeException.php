@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:27:33
  */
 
 declare(strict_types = 1);
@@ -16,19 +16,19 @@ use dicr\cdek\CdekEntity;
  */
 class WorkTimeException extends CdekEntity
 {
-    /** @var string Дата */
-    public $date;
+    /** Дата */
+    public ?string $date = null;
 
-    /** @var string Период работы в указанную дату. Если в этот день не работают, то не отображается. */
-    public $time;
+    /** Период работы в указанную дату. Если в этот день не работают, то не отображается. */
+    public ?string $time = null;
 
-    /** @var string Признак рабочего/нерабочего дня в указанную дату */
-    public $isWorking;
+    /** Признак рабочего/нерабочего дня в указанную дату */
+    public ?string $isWorking = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['date', 'required'],

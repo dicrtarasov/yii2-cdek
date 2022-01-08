@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:17:16
  */
 
 declare(strict_types = 1);
@@ -16,22 +16,22 @@ use dicr\cdek\CdekEntity;
  */
 class Service extends CdekEntity
 {
-    /** @var int Идентификатор номера дополнительной услуги (CdekApi::SERVICE_TYPES) */
-    public $id;
+    /** Идентификатор номера дополнительной услуги (CdekApi::SERVICE_TYPES) */
+    public string|int|null $id = null;
 
-    /** @var string Заголовок услуги */
-    public $title;
+    /** Заголовок услуги */
+    public ?string $title = null;
 
-    /** @var float Стоимость услуги без учета НДС в рублях */
-    public $price;
+    /** Стоимость услуги без учета НДС в рублях */
+    public string|float|null $price = null;
 
-    /** @var ?float Процент для расчета дополнительной услуги */
-    public $rate;
+    /** Процент для расчета дополнительной услуги */
+    public string|float|null $rate = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             ['id', 'required'],

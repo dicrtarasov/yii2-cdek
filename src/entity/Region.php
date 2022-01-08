@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:13:40
  */
 
 declare(strict_types = 1);
@@ -16,30 +16,30 @@ use dicr\cdek\CdekEntity;
  */
 class Region extends CdekEntity
 {
-    /** @var string UUID Идентификатор сущности в ИС СДЭК */
-    public $regionUuid;
+    /** UUID Идентификатор сущности в ИС СДЭК */
+    public ?string $regionUuid = null;
 
-    /** @var string (255) Название региона */
-    public $regionName;
+    /** Название региона */
+    public ?string $regionName = null;
 
-    /** @var ?string (20) Префикс (возможные значения: обл, край, респ, АО, обл, г) */
-    public $prefix;
+    /** Префикс (возможные значения: обл, край, респ, АО, обл, г) */
+    public ?string $prefix = null;
 
-    /** @var ?int Код региона */
-    public $regionCodeExt;
+    /** Код региона */
+    public string|int|null $regionCodeExt = null;
 
-    /** @var ?int Код региона в ИС СДЭК */
-    public $regionCode;
+    /** Код региона в ИС СДЭК */
+    public string|int|null $regionCode = null;
 
-    /** @var ?string UUID Код региона по ФИАС */
-    public $regionFiasGuid;
+    /** UUID Код региона по ФИАС */
+    public ?string $regionFiasGuid = null;
 
-    /** @var string (255) Название страны */
-    public $countryName;
+    /** Название страны */
+    public ?string $countryName = null;
 
-    /** @var int|null Код страны */
-    public $countryCode;
+    /** Код страны */
+    public string|int|null $countryCode = null;
 
-    /** @var ?int Код ОКСМ */
-    public $countryCodeExt;
+    /** Код ОКСМ */
+    public string|int|null $countryCodeExt = null;
 }

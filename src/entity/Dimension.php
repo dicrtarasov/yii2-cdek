@@ -1,9 +1,9 @@
 <?php
 /*
- * @copyright 2019-2021 Dicr http://dicr.org
+ * @copyright 2019-2022 Dicr http://dicr.org
  * @author Igor A Tarasov <develop@dicr.org>
  * @license MIT
- * @version 19.04.21 14:31:44
+ * @version 08.01.22 16:27:33
  */
 
 declare(strict_types = 1);
@@ -16,25 +16,25 @@ use dicr\cdek\CdekEntity;
  */
 class Dimension extends CdekEntity
 {
-    /** @var ?float Ширина (см) */
-    public $width;
+    /** Ширина (см) */
+    public string|float|null $width = null;
 
-    /** @var ?float Высота (см) */
-    public $height;
+    /** Высота (см) */
+    public string|float|null $height = null;
 
-    /** @var ?float Глубина (см) */
-    public $depth;
+    /** Глубина (см) */
+    public string|float|null $depth = null;
 
-    /** @var ?bool Наличие зоны фулфилмента */
-    public $fulfillment;
+    /** Наличие зоны фулфилмента */
+    public ?bool $fulfillment = null;
 
-    /** @var ?bool Является пунктом выдачи */
-    public $isHandout;
+    /** Является пунктом выдачи */
+    public ?bool $isHandout = null;
 
     /**
      * @inheritDoc
      */
-    public function rules() : array
+    public function rules(): array
     {
         return [
             [['width', 'height', 'depth'], 'default'],
